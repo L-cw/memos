@@ -43,6 +43,7 @@ export interface Props {
   // The name of the parent memo if the memo is a comment.
   parentMemoName?: string;
   autoFocus?: boolean;
+  replyTo?: { nickname: string; content: string } | undefined;
   onConfirm?: (memoName: string) => void;
   onCancel?: () => void;
 }
@@ -58,7 +59,7 @@ interface State {
 }
 
 const MemoEditor = (props: Props) => {
-  const { className, cacheKey, memoName, parentMemoName, autoFocus, onConfirm, onCancel } = props;
+  const { className, cacheKey, memoName, parentMemoName, autoFocus, replyTo, onConfirm, onCancel } = props;
   const t = useTranslate();
   const { i18n } = useTranslation();
   const workspaceSettingStore = useWorkspaceSettingStore();
@@ -461,6 +462,12 @@ const MemoEditor = (props: Props) => {
             customInput={<span className="cursor-pointer text-sm text-gray-400 dark:text-gray-500">{displayTime.toLocaleString()}</span>}
             calendarClassName="ml-24 sm:ml-44"
           />
+        )}
+        {replyTo && (
+          <div className="w-full text-gray-500 truncate">
+            <span>回复给 @{replyTo.nickname}：</span>
+            <span>{replyTo.content}</span>
+          </div>
         )}
         <Editor ref={editorRef} {...editorConfig} />
         <ResourceListView resourceList={state.resourceList} setResourceList={handleSetResourceList} />

@@ -1,9 +1,9 @@
 import { Button } from "@usememos/mui";
-import { ArrowUpLeftFromCircleIcon, MessageCircleIcon } from "lucide-react";
+import { MessageCircleIcon } from "lucide-react";
 import { ClientError } from "nice-grpc-web";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { MemoDetailSidebar, MemoDetailSidebarDrawer } from "@/components/MemoDetailSidebar";
 import MemoEditor from "@/components/MemoEditor";
 import MemoView from "@/components/MemoView";
@@ -14,10 +14,10 @@ import useResponsiveWidth from "@/hooks/useResponsiveWidth";
 import { memoNamePrefix, useMemoStore, useWorkspaceSettingStore } from "@/store/v1";
 import { MemoRelation_Type } from "@/types/proto/api/v1/memo_relation_service";
 import { Memo } from "@/types/proto/api/v1/memo_service";
+import { User } from "@/types/proto/api/v1/user_service";
 import { WorkspaceMemoRelatedSetting, WorkspaceSettingKey } from "@/types/proto/store/workspace_setting";
 import { cn } from "@/utils";
 import { useTranslate } from "@/utils/i18n";
-import { memoLink } from "@/utils/memo";
 
 const MemoDetail = () => {
   const t = useTranslate();
@@ -31,16 +31,18 @@ const MemoDetail = () => {
   const uid = params.uid;
   const memoName = `${memoNamePrefix}${uid}`;
   const memo = memoStore.getMemoByName(memoName);
+  console.log("memo", memo);
   const workspaceMemoRelatedSetting = WorkspaceMemoRelatedSetting.fromPartial(
     workspaceSettingStore.getWorkspaceSettingByKey(WorkspaceSettingKey.MEMO_RELATED)?.memoRelatedSetting || {},
   );
-  const [parentMemo, setParentMemo] = useState<Memo | undefined>(undefined);
+  const [replyTo, setReplyTo] = useState<{ nickname: string; content: string } | undefined>(undefined);
   const [showCommentEditor, setShowCommentEditor] = useState(false);
   const commentRelations =
     memo?.relations.filter((relation) => relation.relatedMemo?.name === memo.name && relation.type === MemoRelation_Type.COMMENT) || [];
-  const comments = commentRelations.map((relation) => memoStore.getMemoByName(relation.memo!.name)).filter((memo) => memo) as any as Memo[];
+  const comments = commentRelations.map((relation) => memoStore.getMemoByName(relation.memo!.name)).filter((memo) => memo);
   const showCreateCommentButton = workspaceMemoRelatedSetting.enableComment && currentUser && !showCommentEditor;
 
+  console.log("comments", comments);
   // Prepare memo.
   useEffect(() => {
     if (memoName) {
@@ -60,13 +62,6 @@ const MemoDetail = () => {
     }
 
     (async () => {
-      if (memo.parent) {
-        memoStore.getOrFetchMemoByName(memo.parent).then((memo: Memo) => {
-          setParentMemo(memo);
-        });
-      } else {
-        setParentMemo(undefined);
-      }
       await Promise.all(commentRelations.map((relation) => memoStore.getOrFetchMemoByName(relation.memo!.name)));
     })();
   }, [memo]);
@@ -76,6 +71,7 @@ const MemoDetail = () => {
   }
 
   const handleShowCommentEditor = () => {
+    setReplyTo(undefined);
     setShowCommentEditor(true);
   };
 
@@ -83,6 +79,15 @@ const MemoDetail = () => {
     await memoStore.getOrFetchMemoByName(memoCommentName);
     await memoStore.getOrFetchMemoByName(memo.name, { skipCache: true });
     setShowCommentEditor(false);
+  };
+
+  const comentHandler = (memo: Memo, creator: User) => {
+    // setParentMemo(memo);
+    setReplyTo({
+      nickname: creator.nickname,
+      content: memo.content,
+    });
+    setShowCommentEditor(true);
   };
 
   return (
@@ -94,19 +99,6 @@ const MemoDetail = () => {
       )}
       <div className={cn("w-full flex flex-row justify-start items-start px-4 sm:px-6 gap-4")}>
         <div className={cn(md ? "w-[calc(100%-15rem)]" : "w-full")}>
-          {parentMemo && (
-            <div className="w-auto inline-block mb-2">
-              <Link
-                className="px-3 py-1 border rounded-lg max-w-xs w-auto text-sm flex flex-row justify-start items-center flex-nowrap text-gray-600 dark:text-gray-400 dark:border-gray-500 hover:shadow hover:opacity-80"
-                to={memoLink(parentMemo.name)}
-                state={locationState}
-                viewTransition
-              >
-                <ArrowUpLeftFromCircleIcon className="w-4 h-auto shrink-0 opacity-60 mr-2" />
-                <span className="truncate">{parentMemo.content}</span>
-              </Link>
-            </div>
-          )}
           <MemoView
             key={`${memo.name}-${memo.displayTime}`}
             className="shadow hover:shadow-md transition-all"
@@ -152,6 +144,7 @@ const MemoDetail = () => {
                       parentPage={locationState?.from}
                       showCreator
                       compact
+                      customComment={comentHandler}
                     />
                   ))}
                 </>
@@ -163,6 +156,7 @@ const MemoDetail = () => {
                   cacheKey={`${memo.name}-${memo.updateTime}-comment`}
                   placeholder={t("editor.add-your-comment-here")}
                   parentMemoName={memo.name}
+                  replyTo={replyTo}
                   autoFocus
                   onConfirm={handleCommentCreated}
                   onCancel={() => setShowCommentEditor(false)}

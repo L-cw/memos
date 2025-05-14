@@ -9,6 +9,7 @@ import { useUserStore, useWorkspaceSettingStore, useMemoStore, useUserStatsStore
 import { State } from "@/types/proto/api/v1/common";
 import { MemoRelation_Type } from "@/types/proto/api/v1/memo_relation_service";
 import { Memo, Visibility } from "@/types/proto/api/v1/memo_service";
+import { User } from "@/types/proto/api/v1/user_service";
 import { WorkspaceMemoRelatedSetting } from "@/types/proto/api/v1/workspace_setting_service";
 import { WorkspaceSettingKey } from "@/types/proto/store/workspace_setting";
 import { cn } from "@/utils";
@@ -35,6 +36,7 @@ interface Props {
   showPinned?: boolean;
   className?: string;
   parentPage?: string;
+  customComment?: (memo: Memo, creator: User) => void;
 }
 
 const MemoView: React.FC<Props> = (props: Props) => {
@@ -117,10 +119,30 @@ const MemoView: React.FC<Props> = (props: Props) => {
     }
   };
 
+  const handleComment = (memo: Memo) => {
+    console.log(memo);
+    if (props.customComment) {
+      props.customComment(memo, creator);
+    } else {
+      navigateTo(`${memoLink(memo.name)}#comments`, {
+        state: {
+          from: parentPage,
+        },
+        viewTransition: true,
+      });
+    }
+  };
+
   const displayTime = isArchived ? (
     memo.displayTime?.toLocaleString()
   ) : (
-    <relative-time datetime={memo.displayTime?.toISOString()} format={relativeTimeFormat}></relative-time>
+    <relative-time
+      datetime={memo.displayTime?.toISOString()}
+      format={relativeTimeFormat}
+      hour="2-digit"
+      minute="2-digit"
+      second="2-digit"
+    ></relative-time>
   );
 
   return (
@@ -187,20 +209,16 @@ const MemoView: React.FC<Props> = (props: Props) => {
                 {currentUser && !isArchived && <ReactionSelector className="border-none w-auto h-auto" memo={memo} />}
               </div>
               {!isInMemoDetailPage && (workspaceMemoRelatedSetting.enableComment || commentAmount > 0) && (
-                <Link
+                <div
                   className={cn(
                     "flex flex-row justify-start items-center hover:opacity-70",
                     commentAmount === 0 && "invisible group-hover:visible",
                   )}
-                  to={`${memoLink(memo.name)}#comments`}
-                  viewTransition
-                  state={{
-                    from: parentPage,
-                  }}
+                  onClick={() => handleComment(memo)}
                 >
                   <MessageCircleMoreIcon className="w-4 h-4 mx-auto text-gray-500 dark:text-gray-400" />
                   {commentAmount > 0 && <span className="text-xs text-gray-500 dark:text-gray-400">{commentAmount}</span>}
-                </Link>
+                </div>
               )}
               {props.showPinned && memo.pinned && (
                 <Tooltip title={t("common.unpin")} placement="top">

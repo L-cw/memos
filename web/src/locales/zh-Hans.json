@@ -90,7 +90,9 @@
   "editor": {
     "add-your-comment-here": "请输入您的评论...",
     "any-thoughts": "此刻的想法...",
-    "save": "保存"
+    "save": "保存",
+    "referencing": "引用",
+    "reference-by": "被引用"
   },
   "inbox": {
     "memo-comment": "{{user}} 评论了您的“{{memo}}”。",
@@ -114,7 +116,7 @@
     "visibility": {
       "disabled": "已禁用公开备忘录",
       "private": "私有",
-      "protected": "工作区",
+      "protected": "情侣空间",
       "public": "公开"
     },
     "links": "链接",
