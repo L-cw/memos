@@ -65,6 +65,8 @@ const MemoView: React.FC<Props> = (props: Props) => {
   const readonly = memo.creator !== user?.name && !isSuperUser(user);
   const isInMemoDetailPage = location.pathname.startsWith(memoLink(memo.name));
   const parentPage = props.parentPage || location.pathname;
+  const isShowPinned = props.showPinned && memo.pinned;
+  const [isPinnedCollasped, setIsPinnedCollasped] = useState<boolean>(false);
 
   // Initial related data: creator.
   useAsyncEffect(async () => {
@@ -133,6 +135,10 @@ const MemoView: React.FC<Props> = (props: Props) => {
     }
   };
 
+  const handleToggleContentCollapsed = () => {
+    setIsPinnedCollasped(!isPinnedCollasped);
+  };
+
   const displayTime = isArchived ? (
     memo.displayTime?.toLocaleString()
   ) : (
@@ -149,7 +155,7 @@ const MemoView: React.FC<Props> = (props: Props) => {
     <div
       className={cn(
         "group relative flex flex-col justify-start items-start w-full px-4 py-3 mb-2 gap-2 bg-white dark:bg-zinc-800 rounded-lg border border-white dark:border-zinc-800 hover:border-gray-200 dark:hover:border-zinc-700",
-        props.showPinned && memo.pinned && "border-gray-200 border dark:border-zinc-700",
+        isShowPinned && "border-gray-200 border dark:border-zinc-700",
         className,
       )}
       ref={memoContainerRef}
@@ -166,7 +172,7 @@ const MemoView: React.FC<Props> = (props: Props) => {
       ) : (
         <>
           <div className="w-full flex flex-row justify-between items-center gap-2">
-            <div className="w-auto max-w-[calc(100%-8rem)] grow flex flex-row justify-start items-center">
+            <div className="w-auto max-w-[calc(100%-8rem)] flex flex-row justify-start items-center">
               {props.showCreator && creator ? (
                 <div className="w-full flex flex-row justify-start items-center">
                   <Link className="w-auto hover:opacity-80" to={`/u/${encodeURIComponent(creator.username)}`} viewTransition>
@@ -189,14 +195,23 @@ const MemoView: React.FC<Props> = (props: Props) => {
                   </div>
                 </div>
               ) : (
-                <div
-                  className="w-full text-sm leading-tight text-gray-400 dark:text-gray-500 select-none"
-                  onClick={handleGotoMemoDetailPage}
-                >
+                <div className="text-sm leading-tight text-gray-400 dark:text-gray-500 select-none" onClick={handleGotoMemoDetailPage}>
                   {displayTime}
                 </div>
               )}
             </div>
+            {isShowPinned && (
+              <>
+                {isPinnedCollasped && (
+                  <div className="flex-1 min-w-0 text-gray-500 dark:text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {memo.content}
+                  </div>
+                )}
+                <span className="cursor-pointer text-xs text-gray-400 dark:text-gray-300" onClick={handleToggleContentCollapsed}>
+                  {isPinnedCollasped ? "展开" : "收起"}
+                </span>
+              </>
+            )}
             <div className="flex flex-row justify-end items-center select-none shrink-0 gap-2">
               <div className="w-auto invisible group-hover:visible flex flex-row justify-between items-center gap-2">
                 {props.showVisibility && memo.visibility !== Visibility.PRIVATE && (
@@ -220,7 +235,7 @@ const MemoView: React.FC<Props> = (props: Props) => {
                   {commentAmount > 0 && <span className="text-xs text-gray-500 dark:text-gray-400">{commentAmount}</span>}
                 </div>
               )}
-              {props.showPinned && memo.pinned && (
+              {isShowPinned && (
                 <Tooltip title={t("common.unpin")} placement="top">
                   <span className="cursor-pointer">
                     <BookmarkIcon className="w-4 h-auto text-amber-500" onClick={onPinIconClick} />
@@ -230,20 +245,24 @@ const MemoView: React.FC<Props> = (props: Props) => {
               <MemoActionMenu className="-ml-1" memo={memo} readonly={readonly} onEdit={() => setShowEditor(true)} />
             </div>
           </div>
-          <MemoContent
-            key={`${memo.name}-${memo.updateTime}`}
-            memoName={memo.name}
-            nodes={memo.nodes}
-            readonly={readonly}
-            onClick={handleMemoContentClick}
-            onDoubleClick={handleMemoContentDoubleClick}
-            compact={props.compact && workspaceMemoRelatedSetting.enableAutoCompact}
-            parentPage={parentPage}
-          />
-          {memo.location && <MemoLocationView location={memo.location} />}
-          <MemoResourceListView resources={memo.resources} />
-          <MemoRelationListView memo={memo} relations={referencedMemos} parentPage={parentPage} />
-          <MemoReactionistView memo={memo} reactions={memo.reactions} />
+          {!isPinnedCollasped && (
+            <>
+              <MemoContent
+                key={`${memo.name}-${memo.updateTime}`}
+                memoName={memo.name}
+                nodes={memo.nodes}
+                readonly={readonly}
+                onClick={handleMemoContentClick}
+                onDoubleClick={handleMemoContentDoubleClick}
+                compact={props.compact && workspaceMemoRelatedSetting.enableAutoCompact}
+                parentPage={parentPage}
+              />
+              {memo.location && <MemoLocationView location={memo.location} />}
+              <MemoResourceListView resources={memo.resources} />
+              <MemoRelationListView memo={memo} relations={referencedMemos} parentPage={parentPage} />
+              <MemoReactionistView memo={memo} reactions={memo.reactions} />
+            </>
+          )}
         </>
       )}
     </div>

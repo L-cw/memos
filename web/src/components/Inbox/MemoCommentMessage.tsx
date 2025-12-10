@@ -40,6 +40,7 @@ const MemoCommentMessage = ({ inbox }: Props) => {
       const memo = await memoStore.getOrFetchMemoByName(memoCommentPayload.relatedMemo, {
         skipStore: true,
       });
+      console.log("memo", memo);
       setRelatedMemo(memo);
       const sender = await userStore.getOrFetchUserByName(inbox.sender);
       setSender(sender);
@@ -87,7 +88,7 @@ const MemoCommentMessage = ({ inbox }: Props) => {
       </div>
       <div
         className={cn(
-          "border w-full p-2 px-3 rounded-lg flex flex-col justify-start items-start gap-1 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700",
+          "border w-full p-2 px-3 rounded-lg flex flex-col justify-start items-start gap-1 dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700 flex-1 min-w-0",
           inbox.status !== Inbox_Status.UNREAD && "opacity-60",
         )}
       >
@@ -107,12 +108,12 @@ const MemoCommentMessage = ({ inbox }: Props) => {
               </div>
             </div>
             <p
-              className="text-base leading-tight cursor-pointer text-gray-500 dark:text-gray-400 hover:underline hover:text-blue-600"
+              className="w-full text-base leading-tight cursor-pointer text-gray-500 dark:text-gray-400 hover:underline hover:text-blue-600 overflow-hidden text-ellipsis whitespace-nowrap"
               onClick={handleNavigateToMemo}
             >
               {t("inbox.memo-comment", {
                 user: sender?.nickname || sender?.username,
-                memo: relatedMemo?.name,
+                memo: relatedMemo?.content,
                 interpolation: { escapeValue: false },
               })}
             </p>
