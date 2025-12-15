@@ -66,7 +66,8 @@ const MemoView: React.FC<Props> = (props: Props) => {
   const isInMemoDetailPage = location.pathname.startsWith(memoLink(memo.name));
   const parentPage = props.parentPage || location.pathname;
   const isShowPinned = props.showPinned && memo.pinned;
-  const [isPinnedCollasped, setIsPinnedCollasped] = useState<boolean>(false);
+  // 是否将置顶默认收起
+  const [isPinnedCollasped, setIsPinnedCollasped] = useState<boolean>(true);
 
   // Initial related data: creator.
   useAsyncEffect(async () => {
