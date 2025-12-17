@@ -68,6 +68,8 @@ const MemoView: React.FC<Props> = (props: Props) => {
   const isShowPinned = props.showPinned && memo.pinned;
   // 是否将置顶默认收起
   const [isPinnedCollasped, setIsPinnedCollasped] = useState<boolean>(true);
+  // 是否显示 memo 内容：非置顶 或 置顶但未折叠
+  const shouldShowMemoContent = !isShowPinned || !isPinnedCollasped;
 
   // Initial related data: creator.
   useAsyncEffect(async () => {
@@ -246,7 +248,8 @@ const MemoView: React.FC<Props> = (props: Props) => {
               <MemoActionMenu className="-ml-1" memo={memo} readonly={readonly} onEdit={() => setShowEditor(true)} />
             </div>
           </div>
-          {!isPinnedCollasped && (
+          {/* 展示备注内容：非置顶 或 置顶但未折叠 */}
+          {shouldShowMemoContent && (
             <>
               <MemoContent
                 key={`${memo.name}-${memo.updateTime}`}
