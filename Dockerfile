@@ -1,5 +1,5 @@
 # Build frontend dist.
-FROM node:20-alpine AS frontend
+FROM registry-vpc.cn-hangzhou.aliyuncs.com/goodlcw1-prod/node:20-alpine AS frontend
 WORKDIR /frontend-build
 
 COPY . .
@@ -11,7 +11,7 @@ RUN pnpm i --frozen-lockfile
 RUN pnpm build
 
 # Build backend exec file.
-FROM golang:1.23-alpine AS backend
+FROM registry-vpc.cn-hangzhou.aliyuncs.com/goodlcw1-prod/golang:1.23-alpine AS backend
 WORKDIR /backend-build
 
 COPY . .
@@ -20,7 +20,7 @@ COPY --from=frontend /frontend-build/web/dist /backend-build/server/router/front
 RUN go build -o memos ./bin/memos/main.go
 
 # Make workspace with above generated files.
-FROM alpine:latest AS monolithic
+FROM registry-vpc.cn-hangzhou.aliyuncs.com/goodlcw1-prod/alpine:latest AS monolithic
 WORKDIR /usr/local/memos
 
 RUN apk add --no-cache tzdata
