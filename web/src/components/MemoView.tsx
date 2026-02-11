@@ -77,14 +77,6 @@ const MemoView: React.FC<Props> = (props: Props) => {
     setCreator(user);
   }, []);
 
-  const handleGotoMemoDetailPage = useCallback(() => {
-    navigateTo(memoLink(memo.name), {
-      state: {
-        from: parentPage,
-      },
-    });
-  }, [memo.name, parentPage]);
-
   const handleMemoContentClick = useCallback(async (e: React.MouseEvent) => {
     const targetEl = e.target as HTMLElement;
 
@@ -142,6 +134,12 @@ const MemoView: React.FC<Props> = (props: Props) => {
     setIsPinnedCollasped(!isPinnedCollasped);
   };
 
+  const handleClickTime = () => {
+    if (isShowPinned) {
+      handleToggleContentCollapsed();
+    }
+  };
+
   const displayTime = isArchived ? (
     memo.displayTime?.toLocaleString()
   ) : (
@@ -191,14 +189,14 @@ const MemoView: React.FC<Props> = (props: Props) => {
                     </Link>
                     <div
                       className="w-auto -mt-0.5 text-xs leading-tight text-gray-400 dark:text-gray-500 select-none"
-                      onClick={handleGotoMemoDetailPage}
+                      onClick={handleClickTime}
                     >
                       {displayTime}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm leading-tight text-gray-400 dark:text-gray-500 select-none" onClick={handleGotoMemoDetailPage}>
+                <div className="text-sm leading-tight text-gray-400 dark:text-gray-500 select-none" onClick={handleClickTime}>
                   {displayTime}
                 </div>
               )}
@@ -210,9 +208,6 @@ const MemoView: React.FC<Props> = (props: Props) => {
                     {memo.content}
                   </div>
                 )}
-                <span className="cursor-pointer text-xs text-gray-400 dark:text-gray-300" onClick={handleToggleContentCollapsed}>
-                  {isPinnedCollasped ? "展开" : "收起"}
-                </span>
               </>
             )}
             <div className="flex flex-row justify-end items-center select-none shrink-0 gap-2">

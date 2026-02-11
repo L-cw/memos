@@ -68,17 +68,12 @@ const MemoResourceListView = ({ resources = [] }: { resources: Resource[] }) => 
     }
 
     const cards = resources.map((resource) => (
-      <SquareDiv
-        key={resource.name}
-        className="w-[200px] shrink-0 flex justify-center items-center border dark:border-zinc-900 rounded overflow-hidden hide-scrollbar hover:shadow-md"
-      >
-        <MediaCard resource={resource} />
-      </SquareDiv>
+      <div key={resource.name} className="w-[150px]">
+        <SquareDiv className="w-[200px] shrink-0 flex justify-center items-center border dark:border-zinc-900 rounded overflow-hidden hide-scrollbar hover:shadow-md">
+          <MediaCard resource={resource} />
+        </SquareDiv>
+      </div>
     ));
-
-    if (resources.length === 2 || resources.length === 4) {
-      return <div className="w-full flex flex-wrap gap-[10px]">{cards}</div>;
-    }
 
     return <div className="w-full flex flex-wrap gap-[10px]">{cards}</div>;
   };
