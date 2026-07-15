@@ -71,7 +71,7 @@ const UpdateCustomizedProfileDialog: React.FC<Props> = ({ destroy }: Props) => {
       title: "Memos",
       logoUrl: "/logo.webp",
       description: "",
-      locale: "en",
+      locale: "zh-Hans",
       appearance: "system",
     });
   };

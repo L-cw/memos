@@ -16,7 +16,7 @@ const App = () => {
   const workspaceSettingStore = useWorkspaceSettingStore();
   const userStore = useUserStore();
   const commonContext = useCommonContext();
-  const [, setLocale] = useLocalStorage("locale", "en");
+  const [, setLocale] = useLocalStorage("locale", "zh-Hans");
   const [, setAppearance] = useLocalStorage("appearance", "system");
   const workspaceProfile = commonContext.profile;
   const userSetting = userStore.userSetting;

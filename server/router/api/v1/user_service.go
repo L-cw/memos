@@ -260,7 +260,7 @@ func getDefaultUserSetting(workspaceMemoRelatedSetting *storepb.WorkspaceMemoRel
 		defaultVisibility = workspaceMemoRelatedSetting.DefaultVisibility
 	}
 	return &v1pb.UserSetting{
-		Locale:         "en",
+		Locale:         "zh-Hans",
 		Appearance:     "system",
 		MemoVisibility: defaultVisibility,
 	}

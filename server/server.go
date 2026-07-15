@@ -21,7 +21,6 @@ import (
 	"github.com/usememos/memos/server/profile"
 	apiv1 "github.com/usememos/memos/server/router/api/v1"
 	"github.com/usememos/memos/server/router/frontend"
-	"github.com/usememos/memos/server/router/rss"
 	"github.com/usememos/memos/server/runner/memopayload"
 	"github.com/usememos/memos/server/runner/s3presign"
 	"github.com/usememos/memos/server/runner/version"
@@ -68,11 +67,6 @@ func NewServer(ctx context.Context, profile *profile.Profile, store *store.Store
 
 	// Serve frontend resources.
 	frontend.NewFrontendService(profile, store).Serve(ctx, echoServer)
-
-	rootGroup := echoServer.Group("")
-
-	// Create and register RSS routes.
-	rss.NewRSSService(s.Profile, s.Store).RegisterRoutes(rootGroup)
 
 	grpcServer := grpc.NewServer(
 		// Override the maximum receiving message size to math.MaxInt32 for uploading large resources.

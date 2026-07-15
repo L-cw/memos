@@ -7,7 +7,7 @@
     "sign-in-tip": "已有账户？",
     "sign-up-tip": "还没有账户？"
   },
-  "common": {
+    "common": {
     "about": "关于",
     "add": "增加",
     "admin": "管理",
@@ -24,6 +24,7 @@
     "collapse": "收起",
     "create": "创建",
     "database": "数据库",
+    "day": "天",
     "days": "天",
     "delete": "删除",
     "description": "说明",
@@ -34,12 +35,14 @@
     "file": "文件",
     "filter": "过滤器",
     "home": "主页",
+    "in": "在",
     "image": "图片",
     "inbox": "通知",
     "language": "语言",
     "learn-more": "了解更多",
     "link": "链接",
     "mark": "引用",
+    "memo": "备忘录",
     "memos": "备忘录",
     "name": "名称",
     "new": "新建",
@@ -62,6 +65,7 @@
     "select": "选择",
     "settings": "设置",
     "share": "分享",
+    "shortcuts": "快捷方式",
     "sign-in": "登录",
     "sign-in-with": "使用 {{provider}} 登录",
     "sign-out": "退出登录",
@@ -123,7 +127,14 @@
     "to-do": "待办",
     "code": "代码",
     "remove-completed-task-list-items": "移除已办",
-    "remove-completed-task-list-items-confirm": "您确定要移除所有完成的待办吗？（此操作不可逆）"
+    "remove-completed-task-list-items-confirm": "您确定要移除所有完成的待办吗？（此操作不可逆）",
+    "filters": "筛选器",
+    "order-by": "排序方式",
+    "display-time": "显示时间",
+    "direction": "方向",
+    "direction-desc": "降序",
+    "direction-asc": "升序",
+    "no-memos": "没有备忘录。"
   },
   "message": {
     "archived-successfully": "归档成功",
@@ -137,11 +148,15 @@
     "no-data": "未找到任何数据。",
     "password-changed": "密码已修改",
     "password-not-match": "密码不一致。",
+    "permission-denied": "无权限访问",
     "restored-successfully": "恢复成功",
     "succeed-copy-link": "复制链接到剪贴板成功。",
     "update-succeed": "更新成功",
     "user-not-found": "未找到该用户",
-    "remove-completed-task-list-items-successfully": "移除成功！"
+    "remove-completed-task-list-items-successfully": "移除成功！",
+    "failed-to-embed-memo": "嵌入备忘录失败",
+    "description-is-required": "描述为必填项",
+    "fill-all-required-fields": "请填写所有必填项"
   },
   "reference": {
     "add-references": "添加引用",
@@ -241,7 +256,9 @@
       "template": "模板",
       "token-endpoint": "令牌端点（Token Endpoint）",
       "update-sso": "更新单点登录",
-      "user-endpoint": "用户端点（User Endpoint）"
+      "user-endpoint": "用户端点（User Endpoint）",
+      "no-sso-found": "没有找到单点登录配置。",
+      "single-sign-on": "配置用于身份认证的单点登录（SSO）"
     },
     "storage": "存储",
     "storage-section": {
@@ -306,7 +323,57 @@
       "server-name": "服务器名称",
       "removed-completed-task-list-items": "启用移除已办"
     },
-    "memo-related": "备忘录"
+    "memo-related": "备忘录",
+    "access-token-section": {
+      "title": "访问令牌",
+      "description": "您账号的所有访问令牌列表。",
+      "token": "令牌",
+      "access-token-deletion": "您确定要删除访问令牌 {{accessToken}} 吗？（此操作不可逆）",
+      "access-token-copied-to-clipboard": "访问令牌已复制到剪贴板",
+      "create-dialog": {
+        "create-access-token": "创建访问令牌",
+        "description": "描述",
+        "some-description": "一些描述...",
+        "expiration": "过期时间",
+        "created-at": "创建于",
+        "expires-at": "过期于",
+        "duration-never": "永不过期",
+        "duration-8h": "8 小时",
+        "duration-1m": "1 个月"
+      }
+    },
+    "webhook-section": {
+      "title": "Webhook",
+      "url": "URL",
+      "no-webhooks-found": "没有找到 Webhook。",
+      "create-dialog": {
+        "create-webhook": "创建 Webhook",
+        "edit-webhook": "编辑 Webhook",
+        "an-easy-to-remember-name": "一个容易记住的名称",
+        "title": "标题",
+        "payload-url": "负载 URL",
+        "url-example-post-receive": "https://example.com/postreceive"
+      }
+    },
+    "workspace-section": {
+      "disallow-user-registration": "禁止用户注册",
+      "disallow-password-auth": "禁止密码登录",
+      "disallow-change-username": "禁止修改用户名",
+      "disallow-change-nickname": "禁止修改昵称",
+      "week-start-day": "每周开始日",
+      "saturday": "星期六",
+      "sunday": "星期日",
+      "monday": "星期一"
+    },
+    "memo-related-settings": {
+      "title": "备忘录相关设置",
+      "enable-link-preview": "启用链接预览",
+      "enable-memo-comments": "启用备忘录评论",
+      "enable-memo-location": "启用备忘录位置",
+      "content-lenght-limit": "内容长度限制（字节）",
+      "reactions": "回应"
+    },
+    "version": "版本"
   },
   "tag": {
     "all-tags": "全部标签",
@@ -315,5 +382,17 @@
     "delete-confirm": "您确定要删除此标签吗?所有相关的备忘录将会被归档。",
     "delete-tag": "删除标签",
     "no-tag-found": "没找到此标签"
+  },
+  "markdown": {
+    "code-block": "代码块",
+    "checkbox": "复选框",
+    "content-syntax": "内容语法"
+  },
+  "about": {
+    "description": "一个隐私优先、轻量级的笔记服务。轻松记录和分享您的精彩想法。",
+    "github-repository": "GitHub 仓库",
+    "official-website": "官方网站",
+    "blogs": "博客",
+    "documents": "文档"
   }
 }

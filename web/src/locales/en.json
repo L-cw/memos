@@ -148,6 +148,7 @@
     "no-data": "No data found.",
     "password-changed": "Password Changed",
     "password-not-match": "Passwords do not match.",
+    "permission-denied": "Permission Denied",
     "restored-successfully": "Restored successfully",
     "succeed-copy-link": "Link copied successfully.",
     "update-succeed": "Update succeeded",

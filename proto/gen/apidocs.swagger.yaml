@@ -31,7 +31,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: username
           description: The username to sign in with.
@@ -62,7 +62,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: idpId
           description: The ID of the SSO provider.
@@ -95,7 +95,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - AuthService
   /api/v1/auth/signup:
@@ -110,7 +110,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: username
           description: The username to sign up with.
@@ -136,7 +136,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - AuthService
   /api/v1/identityProviders:
@@ -151,7 +151,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - IdentityProviderService
     post:
@@ -161,18 +161,18 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1IdentityProvider'
+            $ref: '#/definitions/apiV1IdentityProvider'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: identityProvider
           description: The identityProvider to create.
           in: body
           required: true
           schema:
-            $ref: '#/definitions/apiv1IdentityProvider'
+            $ref: '#/definitions/apiV1IdentityProvider'
       tags:
         - IdentityProviderService
   /api/v1/inboxes:
@@ -187,7 +187,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: user
           description: 'Format: users/{user}'
@@ -219,7 +219,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: link
           in: query
@@ -239,7 +239,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: body
           in: body
@@ -260,7 +260,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: body
           in: body
@@ -281,7 +281,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: body
           in: body
@@ -302,7 +302,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: |-
@@ -378,20 +378,18 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Memo'
+            $ref: '#/definitions/apiV1Memo'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: memo
           description: The memo to create.
           in: body
           required: true
           schema:
-            $ref: '#/definitions/apiv1Memo'
-            required:
-              - memo
+            $ref: '#/definitions/apiV1Memo'
       tags:
         - MemoService
   /api/v1/reactions/{id}:
@@ -407,7 +405,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: id
           description: |-
@@ -431,7 +429,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - ResourceService
     post:
@@ -445,7 +443,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: resource
           in: body
@@ -466,7 +464,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - UserService
     post:
@@ -480,7 +478,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: user
           in: body
@@ -501,7 +499,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - UserService
   /api/v1/users:username:
@@ -516,7 +514,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: username
           description: The username of the user.
@@ -537,7 +535,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: creator
           description: The name of the creator.
@@ -557,7 +555,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: body
           in: body
@@ -578,7 +576,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: id
           in: path
@@ -599,7 +597,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: id
           in: path
@@ -620,7 +618,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: webhook.id
           in: path
@@ -660,7 +658,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       tags:
         - WorkspaceService
   /api/v1/workspace/{name}:
@@ -671,11 +669,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1WorkspaceSetting'
+            $ref: '#/definitions/apiV1WorkspaceSetting'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: |-
@@ -695,11 +693,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1WorkspaceSetting'
+            $ref: '#/definitions/apiV1WorkspaceSetting'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: setting.name
           description: |-
@@ -717,11 +715,11 @@ paths:
             type: object
             properties:
               generalSetting:
-                $ref: '#/definitions/apiv1WorkspaceGeneralSetting'
+                $ref: '#/definitions/apiV1WorkspaceGeneralSetting'
               storageSetting:
-                $ref: '#/definitions/apiv1WorkspaceStorageSetting'
+                $ref: '#/definitions/apiV1WorkspaceStorageSetting'
               memoRelatedSetting:
-                $ref: '#/definitions/apiv1WorkspaceMemoRelatedSetting'
+                $ref: '#/definitions/apiV1WorkspaceMemoRelatedSetting'
             title: setting is the setting to update.
       tags:
         - WorkspaceSettingService
@@ -733,11 +731,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1IdentityProvider'
+            $ref: '#/definitions/apiV1IdentityProvider'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: identityProvider.name
           description: |-
@@ -755,13 +753,13 @@ paths:
             type: object
             properties:
               type:
-                $ref: '#/definitions/apiv1IdentityProviderType'
+                $ref: '#/definitions/apiV1IdentityProviderType'
               title:
                 type: string
               identifierFilter:
                 type: string
               config:
-                $ref: '#/definitions/apiv1IdentityProviderConfig'
+                $ref: '#/definitions/apiV1IdentityProviderConfig'
             title: The identityProvider to update.
       tags:
         - IdentityProviderService
@@ -777,7 +775,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: inbox.name
           description: |-
@@ -819,11 +817,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Memo'
+            $ref: '#/definitions/apiV1Memo'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: memo.name
           description: |-
@@ -905,13 +903,11 @@ paths:
                 description: The snippet of the memo content. Plain text only.
                 readOnly: true
               location:
-                $ref: '#/definitions/apiv1Location'
+                $ref: '#/definitions/apiV1Location'
                 description: The location of the memo.
-            title: |-
+            description: |-
               The memo to update.
               The `name` field is required.
-            required:
-              - memo
       tags:
         - MemoService
   /api/v1/{name_1}:
@@ -926,7 +922,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_1
           description: The name of the user.
@@ -948,7 +944,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_1
           description: The name of the identityProvider to delete.
@@ -966,11 +962,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1IdentityProvider'
+            $ref: '#/definitions/apiV1IdentityProvider'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_2
           description: The name of the identityProvider to get.
@@ -992,7 +988,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_2
           description: The name of the inbox to delete.
@@ -1014,7 +1010,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_3
           description: The name of the resource.
@@ -1036,7 +1032,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_3
           description: The name of the resource.
@@ -1054,11 +1050,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Memo'
+            $ref: '#/definitions/apiV1Memo'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_4
           description: The name of the memo.
@@ -1080,7 +1076,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name_4
           description: The name of the memo.
@@ -1102,7 +1098,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: |-
@@ -1126,7 +1122,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1148,7 +1144,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1169,7 +1165,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1197,7 +1193,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1224,7 +1220,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1241,11 +1237,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Memo'
+            $ref: '#/definitions/apiV1Memo'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1258,7 +1254,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/apiv1Memo'
+            $ref: '#/definitions/apiV1Memo'
       tags:
         - MemoService
   /api/v1/{name}/reactions:
@@ -1273,7 +1269,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1294,7 +1290,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1321,7 +1317,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1343,7 +1339,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1370,7 +1366,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1392,7 +1388,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the memo.
@@ -1415,11 +1411,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1UserSetting'
+            $ref: '#/definitions/apiV1UserSetting'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1441,7 +1437,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1463,7 +1459,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: |-
@@ -1545,7 +1541,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: The name of the user.
@@ -1562,11 +1558,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Shortcut'
+            $ref: '#/definitions/apiV1Shortcut'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: The name of the user.
@@ -1578,7 +1574,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/apiv1Shortcut'
+            $ref: '#/definitions/apiV1Shortcut'
         - name: validateOnly
           in: query
           required: false
@@ -1598,7 +1594,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: The name of the user.
@@ -1621,11 +1617,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1Shortcut'
+            $ref: '#/definitions/apiV1Shortcut'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: The name of the user.
@@ -1662,7 +1658,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: |-
@@ -1695,7 +1691,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: parent
           description: |-
@@ -1724,7 +1720,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: resource.name
           description: |-
@@ -1769,11 +1765,11 @@ paths:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/apiv1UserSetting'
+            $ref: '#/definitions/apiV1UserSetting'
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: setting.name
           description: The name of the user.
@@ -1796,8 +1792,6 @@ paths:
               memoVisibility:
                 type: string
                 description: The default visibility of the memo.
-            required:
-              - setting
       tags:
         - UserService
   /api/v1/{user.name}:
@@ -1812,7 +1806,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: user.name
           description: |-
@@ -1852,8 +1846,6 @@ paths:
                 type: string
                 format: date-time
                 readOnly: true
-            required:
-              - user
       tags:
         - UserService
   /file/{name}/avatar:
@@ -1868,7 +1860,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the user.
@@ -1901,7 +1893,7 @@ paths:
         default:
           description: An unexpected error response.
           schema:
-            $ref: '#/definitions/googlerpcStatus'
+            $ref: '#/definitions/googleRpcStatus'
       parameters:
         - name: name
           description: The name of the resource.
@@ -2075,7 +2067,7 @@ definitions:
 
       Use of this type only changes how the request and response bodies are
       handled, all other features will continue to work unchanged.
-  apiv1ActivityMemoCommentPayload:
+  apiV1ActivityMemoCommentPayload:
     type: object
     properties:
       memo:
@@ -2087,20 +2079,20 @@ definitions:
         type: string
         description: The name of related memo.
     description: ActivityMemoCommentPayload represents the payload of a memo comment activity.
-  apiv1ActivityPayload:
+  apiV1ActivityPayload:
     type: object
     properties:
       memoComment:
-        $ref: '#/definitions/apiv1ActivityMemoCommentPayload'
+        $ref: '#/definitions/apiV1ActivityMemoCommentPayload'
       versionUpdate:
-        $ref: '#/definitions/apiv1ActivityVersionUpdatePayload'
-  apiv1ActivityVersionUpdatePayload:
+        $ref: '#/definitions/apiV1ActivityVersionUpdatePayload'
+  apiV1ActivityVersionUpdatePayload:
     type: object
     properties:
       version:
         type: string
         description: The updated version of memos.
-  apiv1FieldMapping:
+  apiV1FieldMapping:
     type: object
     properties:
       identifier:
@@ -2109,7 +2101,7 @@ definitions:
         type: string
       email:
         type: string
-  apiv1IdentityProvider:
+  apiV1IdentityProvider:
     type: object
     properties:
       name:
@@ -2118,25 +2110,25 @@ definitions:
           The name of the identityProvider.
           Format: identityProviders/{id}, id is the system generated auto-incremented id.
       type:
-        $ref: '#/definitions/apiv1IdentityProviderType'
+        $ref: '#/definitions/apiV1IdentityProviderType'
       title:
         type: string
       identifierFilter:
         type: string
       config:
-        $ref: '#/definitions/apiv1IdentityProviderConfig'
-  apiv1IdentityProviderConfig:
+        $ref: '#/definitions/apiV1IdentityProviderConfig'
+  apiV1IdentityProviderConfig:
     type: object
     properties:
       oauth2Config:
-        $ref: '#/definitions/apiv1OAuth2Config'
-  apiv1IdentityProviderType:
+        $ref: '#/definitions/apiV1OAuth2Config'
+  apiV1IdentityProviderType:
     type: string
     enum:
       - TYPE_UNSPECIFIED
       - OAUTH2
     default: TYPE_UNSPECIFIED
-  apiv1Location:
+  apiV1Location:
     type: object
     properties:
       placeholder:
@@ -2147,7 +2139,7 @@ definitions:
       longitude:
         type: number
         format: double
-  apiv1Memo:
+  apiV1Memo:
     type: object
     properties:
       name:
@@ -2219,9 +2211,9 @@ definitions:
         description: The snippet of the memo content. Plain text only.
         readOnly: true
       location:
-        $ref: '#/definitions/apiv1Location'
+        $ref: '#/definitions/apiV1Location'
         description: The location of the memo.
-  apiv1OAuth2Config:
+  apiV1OAuth2Config:
     type: object
     properties:
       clientId:
@@ -2239,8 +2231,8 @@ definitions:
         items:
           type: string
       fieldMapping:
-        $ref: '#/definitions/apiv1FieldMapping'
-  apiv1Shortcut:
+        $ref: '#/definitions/apiV1FieldMapping'
+  apiV1Shortcut:
     type: object
     properties:
       id:
@@ -2249,7 +2241,7 @@ definitions:
         type: string
       filter:
         type: string
-  apiv1UserSetting:
+  apiV1UserSetting:
     type: object
     properties:
       name:
@@ -2264,7 +2256,7 @@ definitions:
       memoVisibility:
         type: string
         description: The default visibility of the memo.
-  apiv1WorkspaceCustomProfile:
+  apiV1WorkspaceCustomProfile:
     type: object
     properties:
       title:
@@ -2277,7 +2269,7 @@ definitions:
         type: string
       appearance:
         type: string
-  apiv1WorkspaceGeneralSetting:
+  apiV1WorkspaceGeneralSetting:
     type: object
     properties:
       disallowUserRegistration:
@@ -2293,7 +2285,7 @@ definitions:
         type: string
         description: additional_style is the additional style.
       customProfile:
-        $ref: '#/definitions/apiv1WorkspaceCustomProfile'
+        $ref: '#/definitions/apiV1WorkspaceCustomProfile'
         description: custom_profile is the custom profile.
       weekStartDayOffset:
         type: integer
@@ -2308,7 +2300,7 @@ definitions:
       disallowChangeNickname:
         type: boolean
         description: disallow_change_nickname disallows changing nickname.
-  apiv1WorkspaceMemoRelatedSetting:
+  apiV1WorkspaceMemoRelatedSetting:
     type: object
     properties:
       disallowPublicVisibility:
@@ -2347,7 +2339,7 @@ definitions:
       disableMarkdownShortcuts:
         type: boolean
         description: disable_markdown_shortcuts disallow the registration of markdown shortcuts.
-  apiv1WorkspaceSetting:
+  apiV1WorkspaceSetting:
     type: object
     properties:
       name:
@@ -2356,16 +2348,16 @@ definitions:
           name is the name of the setting.
           Format: settings/{setting}
       generalSetting:
-        $ref: '#/definitions/apiv1WorkspaceGeneralSetting'
+        $ref: '#/definitions/apiV1WorkspaceGeneralSetting'
       storageSetting:
-        $ref: '#/definitions/apiv1WorkspaceStorageSetting'
+        $ref: '#/definitions/apiV1WorkspaceStorageSetting'
       memoRelatedSetting:
-        $ref: '#/definitions/apiv1WorkspaceMemoRelatedSetting'
-  apiv1WorkspaceStorageSetting:
+        $ref: '#/definitions/apiV1WorkspaceMemoRelatedSetting'
+  apiV1WorkspaceStorageSetting:
     type: object
     properties:
       storageType:
-        $ref: '#/definitions/apiv1WorkspaceStorageSettingStorageType'
+        $ref: '#/definitions/apiV1WorkspaceStorageSettingStorageType'
         description: storage_type is the storage type.
       filepathTemplate:
         type: string
@@ -2379,7 +2371,7 @@ definitions:
       s3Config:
         $ref: '#/definitions/WorkspaceStorageSettingS3Config'
         description: The S3 config.
-  apiv1WorkspaceStorageSettingStorageType:
+  apiV1WorkspaceStorageSettingStorageType:
     type: string
     enum:
       - STORAGE_TYPE_UNSPECIFIED
@@ -2391,7 +2383,7 @@ definitions:
        - DATABASE: DATABASE is the database storage type.
        - LOCAL: LOCAL is the local storage type.
        - S3: S3 is the S3 storage type.
-  googlerpcStatus:
+  googleRpcStatus:
     type: object
     properties:
       code:
@@ -2550,7 +2542,7 @@ definitions:
         description: The create time of the activity.
         readOnly: true
       payload:
-        $ref: '#/definitions/apiv1ActivityPayload'
+        $ref: '#/definitions/apiV1ActivityPayload'
         description: The payload of the activity.
   v1AutoLinkNode:
     type: object
@@ -2737,7 +2729,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/apiv1IdentityProvider'
+          $ref: '#/definitions/apiV1IdentityProvider'
   v1ListInboxesResponse:
     type: object
     properties:
@@ -2758,7 +2750,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/apiv1Memo'
+          $ref: '#/definitions/apiV1Memo'
   v1ListMemoReactionsResponse:
     type: object
     properties:
@@ -2790,7 +2782,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/apiv1Memo'
+          $ref: '#/definitions/apiV1Memo'
       nextPageToken:
         type: string
         description: |-
@@ -2824,7 +2816,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/apiv1Shortcut'
+          $ref: '#/definitions/apiV1Shortcut'
   v1ListUserAccessTokensResponse:
     type: object
     properties:

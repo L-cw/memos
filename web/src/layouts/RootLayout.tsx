@@ -1,7 +1,7 @@
 import { Tooltip } from "@mui/joy";
 import { Button } from "@usememos/mui";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { Outlet, useLocation, useSearchParams } from "react-router-dom";
 import useLocalStorage from "react-use/lib/useLocalStorage";
 import usePrevious from "react-use/lib/usePrevious";
@@ -9,7 +9,7 @@ import Navigation from "@/components/Navigation";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import useResponsiveWidth from "@/hooks/useResponsiveWidth";
 import Loading from "@/pages/Loading";
-import { Routes } from "@/router";
+import PermissionDenied from "@/pages/PermissionDenied";
 import { useMemoFilterStore } from "@/store/v1";
 import { cn } from "@/utils";
 import { useTranslate } from "@/utils/i18n";
@@ -22,19 +22,8 @@ const RootLayout = () => {
   const currentUser = useCurrentUser();
   const memoFilterStore = useMemoFilterStore();
   const [collapsed, setCollapsed] = useLocalStorage<boolean>("navigation-collapsed", false);
-  const [initialized, setInitialized] = useState(false);
   const pathname = useMemo(() => location.pathname, [location.pathname]);
   const prevPathname = usePrevious(pathname);
-
-  useEffect(() => {
-    if (!currentUser) {
-      if (([Routes.ROOT, Routes.RESOURCES, Routes.INBOX, Routes.ARCHIVED, Routes.SETTING] as string[]).includes(location.pathname)) {
-        window.location.href = Routes.EXPLORE;
-        return;
-      }
-    }
-    setInitialized(true);
-  }, []);
 
   useEffect(() => {
     // When the route changes and there is no filter in the search params, remove all filters.
@@ -43,9 +32,11 @@ const RootLayout = () => {
     }
   }, [prevPathname, pathname, searchParams]);
 
-  return !initialized ? (
-    <Loading />
-  ) : (
+  if (!currentUser) {
+    return <PermissionDenied showHeader={false} />;
+  }
+
+  return (
     <div className="w-full min-h-full">
       <div className={cn("w-full transition-all mx-auto flex flex-row justify-center items-start", collapsed ? "sm:pl-16" : "sm:pl-56")}>
         {sm && (

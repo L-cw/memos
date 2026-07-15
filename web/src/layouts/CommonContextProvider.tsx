@@ -4,6 +4,7 @@ import { workspaceServiceClient } from "@/grpcweb";
 import { useUserStore, useWorkspaceSettingStore } from "@/store/v1";
 import { WorkspaceProfile } from "@/types/proto/api/v1/workspace_service";
 import { WorkspaceGeneralSetting, WorkspaceSettingKey } from "@/types/proto/store/workspace_setting";
+import { findNearestMatchedLanguage } from "@/utils/i18n";
 
 interface Context {
   locale: string;
@@ -14,7 +15,7 @@ interface Context {
 }
 
 const CommonContext = createContext<Context>({
-  locale: "en",
+  locale: "zh-Hans",
   appearance: "system",
   profile: WorkspaceProfile.fromPartial({}),
   setLocale: () => {},
@@ -26,11 +27,11 @@ const CommonContextProvider = ({ children }: { children: React.ReactNode }) => {
   const userStore = useUserStore();
   const [initialized, setInitialized] = useState(false);
   const [commonContext, setCommonContext] = useState<Pick<Context, "locale" | "appearance" | "profile">>({
-    locale: "en",
+    locale: "zh-Hans",
     appearance: "system",
     profile: WorkspaceProfile.fromPartial({}),
   });
-  const [locale] = useLocalStorage("locale", "en");
+  const [locale] = useLocalStorage("locale", "zh-Hans");
   const [appearance] = useLocalStorage("appearance", "system");
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const CommonContextProvider = ({ children }: { children: React.ReactNode }) => {
         workspaceSettingStore.getWorkspaceSettingByKey(WorkspaceSettingKey.GENERAL).generalSetting ||
         WorkspaceGeneralSetting.fromPartial({});
       setCommonContext({
-        locale: locale || workspaceGeneralSetting.customProfile?.locale || "en",
+        locale: findNearestMatchedLanguage(locale || workspaceGeneralSetting.customProfile?.locale || "zh-Hans"),
         appearance: appearance || workspaceGeneralSetting.customProfile?.appearance || "system",
         profile: workspaceProfile,
       });
@@ -68,7 +69,7 @@ const CommonContextProvider = ({ children }: { children: React.ReactNode }) => {
     <CommonContext.Provider
       value={{
         ...commonContext,
-        setLocale: (locale: string) => setCommonContext({ ...commonContext, locale }),
+        setLocale: (locale: string) => setCommonContext({ ...commonContext, locale: findNearestMatchedLanguage(locale) }),
         setAppearance: (appearance: string) => setCommonContext({ ...commonContext, appearance }),
       }}
     >
