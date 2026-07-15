@@ -1,5 +1,4 @@
-import { Tooltip } from "@mui/joy";
-import { Button } from "@usememos/mui";
+import { Button, Tooltip } from "@mui/joy";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Suspense, useEffect, useMemo } from "react";
 import { Outlet, useLocation, useSearchParams } from "react-router-dom";

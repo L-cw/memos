@@ -1,4 +1,4 @@
-import { Checkbox } from "@usememos/mui";
+import { Checkbox } from "@mui/joy";
 import { useContext, useState } from "react";
 import { markdownServiceClient } from "@/grpcweb";
 import { useMemoStore } from "@/store/v1";

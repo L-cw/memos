@@ -1,5 +1,4 @@
-import { Dropdown, Menu, MenuButton, MenuItem } from "@mui/joy";
-import { Button } from "@usememos/mui";
+import { Button, Dropdown, Menu, MenuButton, MenuItem } from "@mui/joy";
 import { MoreVerticalIcon, PenLineIcon } from "lucide-react";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useTranslate } from "@/utils/i18n";

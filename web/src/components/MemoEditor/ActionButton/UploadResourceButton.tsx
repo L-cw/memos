@@ -1,4 +1,4 @@
-import { Button } from "@usememos/mui";
+import { Button } from "@mui/joy";
 import { PaperclipIcon } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 import toast from "react-hot-toast";

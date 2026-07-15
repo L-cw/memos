@@ -1,5 +1,4 @@
-import { Dropdown, Menu, MenuButton, MenuItem, Link } from "@mui/joy";
-import { Button } from "@usememos/mui";
+import { Button, Dropdown, Link, Menu, MenuButton, MenuItem } from "@mui/joy";
 import { CheckSquareIcon, Code2Icon, SquareSlashIcon } from "lucide-react";
 import { useTranslate } from "@/utils/i18n";
 import { EditorRefActions } from "../Editor";

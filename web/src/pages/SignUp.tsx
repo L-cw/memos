@@ -1,4 +1,4 @@
-import { Button, Input } from "@usememos/mui";
+import { Button, Input } from "@mui/joy";
 import { LoaderIcon } from "lucide-react";
 import { ClientError } from "nice-grpc-web";
 import { useState } from "react";

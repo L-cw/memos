@@ -1,4 +1,4 @@
-import { Button } from "@usememos/mui";
+import { Button } from "@mui/joy";
 import { MessageCircleIcon } from "lucide-react";
 import { ClientError } from "nice-grpc-web";
 import { useEffect, useState } from "react";

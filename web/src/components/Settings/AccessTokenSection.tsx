@@ -1,4 +1,4 @@
-import { Button } from "@usememos/mui";
+import { Button } from "@mui/joy";
 import copy from "copy-to-clipboard";
 import { ClipboardIcon, TrashIcon } from "lucide-react";
 import { useEffect, useState } from "react";

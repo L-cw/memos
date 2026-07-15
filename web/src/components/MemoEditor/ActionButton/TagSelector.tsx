@@ -1,5 +1,4 @@
-import { Dropdown, Menu, MenuButton } from "@mui/joy";
-import { Button } from "@usememos/mui";
+import { Button, Dropdown, Menu, MenuButton } from "@mui/joy";
 import { HashIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import useClickAway from "react-use/lib/useClickAway";
