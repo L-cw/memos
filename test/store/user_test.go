@@ -28,6 +28,10 @@ func TestUserStore(t *testing.T) {
 	user, err = ts.UpdateUser(ctx, userPatch)
 	require.NoError(t, err)
 	require.Equal(t, userPatchNickname, user.Nickname)
+	userRole := store.RoleAdmin
+	user, err = ts.UpdateUser(ctx, &store.UpdateUser{ID: user.ID, Role: &userRole})
+	require.NoError(t, err)
+	require.Equal(t, store.RoleAdmin, user.Role)
 	err = ts.DeleteUser(ctx, &store.DeleteUser{
 		ID: user.ID,
 	})

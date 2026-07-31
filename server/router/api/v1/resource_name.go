@@ -17,6 +17,8 @@ const (
 	InboxNamePrefix            = "inboxes/"
 	IdentityProviderNamePrefix = "identityProviders/"
 	ActivityNamePrefix         = "activities/"
+	ActionNamePrefix           = "actions/"
+	GoalRecordNamePrefix       = "goalRecords/"
 )
 
 // GetNameParentTokens returns the tokens from a resource name.
@@ -69,6 +71,15 @@ func ExtractMemoUIDFromName(name string) (string, error) {
 	}
 	id := tokens[0]
 	return id, nil
+}
+
+// ExtractActionUIDFromName returns the Action UID from a resource name.
+func ExtractActionUIDFromName(name string) (string, error) {
+	tokens, err := GetNameParentTokens(name, ActionNamePrefix)
+	if err != nil {
+		return "", err
+	}
+	return tokens[0], nil
 }
 
 // ExtractResourceUIDFromName returns the resource UID from a resource name.

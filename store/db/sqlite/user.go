@@ -38,6 +38,9 @@ func (d *DB) UpdateUser(ctx context.Context, update *store.UpdateUser) (*store.U
 	if v := update.Username; v != nil {
 		set, args = append(set, "username = ?"), append(args, *v)
 	}
+	if v := update.Role; v != nil {
+		set, args = append(set, "role = ?"), append(args, *v)
+	}
 	if v := update.Email; v != nil {
 		set, args = append(set, "email = ?"), append(args, *v)
 	}

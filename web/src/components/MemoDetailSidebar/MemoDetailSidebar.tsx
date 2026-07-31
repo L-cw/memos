@@ -4,6 +4,7 @@ import { MemoRelation_Type } from "@/types/proto/api/v1/memo_relation_service";
 import { Memo, MemoProperty } from "@/types/proto/api/v1/memo_service";
 import { cn } from "@/utils";
 import { useTranslate } from "@/utils/i18n";
+import MemoActionRelations from "../Action/MemoActionRelations";
 import MemoRelationForceGraph from "../MemoRelationForceGraph";
 
 interface Props {
@@ -32,6 +33,7 @@ const MemoDetailSidebar = ({ memo, className, parentPage }: Props) => {
             </div>
           </div>
         )}
+        <MemoActionRelations memo={memo} />
         <div className="w-full flex flex-col">
           <p className="flex flex-row justify-start items-center w-full gap-1 mb-1 text-sm leading-6 text-gray-400 dark:text-gray-500 select-none">
             <span>Created at</span>

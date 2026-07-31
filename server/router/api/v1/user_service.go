@@ -199,6 +199,9 @@ func (s *APIV1Service) UpdateUser(ctx context.Context, request *v1pb.UpdateUserR
 		} else if field == "description" {
 			update.Description = &request.User.Description
 		} else if field == "role" {
+			if currentUser.Role != store.RoleHost {
+				return nil, status.Errorf(codes.PermissionDenied, "permission denied")
+			}
 			role := convertUserRoleToStore(request.User.Role)
 			update.Role = &role
 		} else if field == "password" {

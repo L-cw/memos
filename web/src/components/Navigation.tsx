@@ -1,10 +1,26 @@
 import { Tooltip } from "@mui/joy";
-import { ArchiveIcon, BellIcon, Globe2Icon, HomeIcon, LogInIcon, PaperclipIcon, SettingsIcon, SmileIcon, User2Icon } from "lucide-react";
+import {
+  ArchiveIcon,
+  BellIcon,
+  CalendarCheck2Icon,
+  CalendarClockIcon,
+  CircleCheckBigIcon,
+  FolderKanbanIcon,
+  Globe2Icon,
+  HomeIcon,
+  Layers3Icon,
+  LogInIcon,
+  PaperclipIcon,
+  SettingsIcon,
+  SmileIcon,
+  TargetIcon,
+  User2Icon,
+} from "lucide-react";
 import { useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { Routes } from "@/router";
-import { useInboxStore } from "@/store/v1";
+import { getActionViewCounts, useActionStore, useInboxStore } from "@/store/v1";
 import { Inbox_Status } from "@/types/proto/api/v1/inbox_service";
 import { cn } from "@/utils";
 import { useTranslate } from "@/utils/i18n";
@@ -15,6 +31,7 @@ interface NavLinkItem {
   path: string;
   title: string;
   icon: React.ReactNode;
+  count?: number;
 }
 
 interface Props {
@@ -26,8 +43,12 @@ const Navigation = (props: Props) => {
   const { collapsed, className } = props;
   const t = useTranslate();
   const user = useCurrentUser();
+  const location = useLocation();
   const inboxStore = useInboxStore();
+  const actions = useActionStore((state) => state.actions);
   const hasUnreadInbox = inboxStore.inboxes.some((inbox) => inbox.status === Inbox_Status.UNREAD);
+  const actionCounts = getActionViewCounts(actions);
+  const isActionMode = location.pathname.startsWith(Routes.ACTIONS);
 
   useEffect(() => {
     if (!user) {
@@ -110,8 +131,55 @@ const Navigation = (props: Props) => {
     icon: <SmileIcon className="w-6 h-auto opacity-70 shrink-0" />,
   };
 
+  const actionNavLinks: NavLinkItem[] = [
+    {
+      id: "header-actions-today",
+      path: `${Routes.ACTIONS}/today`,
+      title: t("action.views.today"),
+      icon: <CalendarCheck2Icon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.today,
+    },
+    {
+      id: "header-actions-upcoming",
+      path: `${Routes.ACTIONS}/upcoming`,
+      title: t("action.views.upcoming"),
+      icon: <CalendarClockIcon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.upcoming,
+    },
+    {
+      id: "header-actions-all",
+      path: `${Routes.ACTIONS}/all`,
+      title: t("action.views.all"),
+      icon: <Layers3Icon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.all,
+    },
+    {
+      id: "header-actions-completed",
+      path: `${Routes.ACTIONS}/completed`,
+      title: t("action.views.completed"),
+      icon: <CircleCheckBigIcon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.completed,
+    },
+    {
+      id: "header-actions-projects",
+      path: `${Routes.ACTIONS}/projects`,
+      title: t("action.views.projects"),
+      icon: <FolderKanbanIcon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.projects,
+    },
+    {
+      id: "header-actions-goals",
+      path: `${Routes.ACTIONS}/goals`,
+      title: t("action.views.goals"),
+      icon: <TargetIcon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.goals,
+    },
+  ];
+
   const navLinks: NavLinkItem[] = user
-    ? [homeNavLink, resourcesNavLink, exploreNavLink, profileNavLink, inboxNavLink, archivedNavLink, settingNavLink]
+    ? isActionMode
+      ? actionNavLinks
+      : [homeNavLink, resourcesNavLink, exploreNavLink, profileNavLink, inboxNavLink, archivedNavLink, settingNavLink]
     : [exploreNavLink, signInNavLink, aboutNavLink];
 
   return (
@@ -132,6 +200,7 @@ const Navigation = (props: Props) => {
             key={navLink.id}
             to={navLink.path}
             id={navLink.id}
+            end={navLink.path === Routes.ROOT}
             viewTransition
           >
             {props.collapsed ? (
@@ -141,7 +210,12 @@ const Navigation = (props: Props) => {
             ) : (
               navLink.icon
             )}
-            {!props.collapsed && <span className="ml-3 truncate">{navLink.title}</span>}
+            {!props.collapsed && (
+              <>
+                <span className="ml-3 min-w-0 flex-1 truncate">{navLink.title}</span>
+                {navLink.count !== undefined && <span className="ml-2 text-xs tabular-nums opacity-50">{navLink.count}</span>}
+              </>
+            )}
           </NavLink>
         ))}
       </div>

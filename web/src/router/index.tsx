@@ -3,6 +3,7 @@ import App from "@/App";
 import RootLayout from "@/layouts/RootLayout";
 import SuspenseWrapper from "@/layouts/SuspenseWrapper";
 import About from "@/pages/About";
+import Actions from "@/pages/Actions";
 import AdminSignIn from "@/pages/AdminSignIn";
 import Archived from "@/pages/Archived";
 import AuthCallback from "@/pages/AuthCallback";
@@ -27,6 +28,7 @@ export enum Routes {
   EXPLORE = "/explore",
   ABOUT = "/about",
   AUTH = "/auth",
+  ACTIONS = "/actions",
 }
 
 const router = createBrowserRouter([
@@ -67,6 +69,14 @@ const router = createBrowserRouter([
           {
             path: Routes.RESOURCES,
             element: <Resources />,
+          },
+          {
+            path: Routes.ACTIONS,
+            element: <Actions />,
+          },
+          {
+            path: `${Routes.ACTIONS}/:view`,
+            element: <Actions />,
           },
           {
             path: Routes.INBOX,

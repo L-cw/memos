@@ -7,6 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import useLocalStorage from "react-use/lib/useLocalStorage";
+import { actionApi } from "@/api/action";
 import { memoServiceClient } from "@/grpcweb";
 import { TAB_SPACE_WIDTH } from "@/helpers/consts";
 import { isValidUrl } from "@/helpers/utils";
@@ -22,6 +23,7 @@ import { WorkspaceSettingKey } from "@/types/proto/store/workspace_setting";
 import { useTranslate } from "@/utils/i18n";
 import { convertVisibilityFromString, convertVisibilityToString } from "@/utils/memo";
 import VisibilityIcon from "../VisibilityIcon";
+import AddActionReferencePopover from "./ActionButton/AddActionReferencePopover";
 import AddMemoRelationPopover from "./ActionButton/AddMemoRelationPopover";
 import LocationSelector from "./ActionButton/LocationSelector";
 import MarkdownMenu from "./ActionButton/MarkdownMenu";
@@ -77,6 +79,8 @@ const MemoEditor = (props: Props) => {
   });
   const [displayTime, setDisplayTime] = useState<Date | undefined>();
   const [hasContent, setHasContent] = useState<boolean>(false);
+  const [actionRelationUids, setActionRelationUids] = useState<string[]>([]);
+  const [actionRelationsDirty, setActionRelationsDirty] = useState(false);
   const editorRef = useRef<EditorRefActions>(null);
   const userSetting = userStore.userSetting as UserSetting;
   const contentCacheKey = `${currentUser.name}-${cacheKey || ""}`;
@@ -114,6 +118,8 @@ const MemoEditor = (props: Props) => {
 
   useAsyncEffect(async () => {
     if (!memoName) {
+      setActionRelationUids([]);
+      setActionRelationsDirty(false);
       return;
     }
 
@@ -131,6 +137,13 @@ const MemoEditor = (props: Props) => {
       if (!contentCache) {
         editorRef.current?.setContent(memo.content ?? "");
       }
+    }
+    try {
+      const relatedActions = await actionApi.listMemoActionRelations(memoName);
+      setActionRelationUids(relatedActions.map((action) => action.uid));
+      setActionRelationsDirty(false);
+    } catch (error) {
+      console.error("Failed to load Memo Action relations", error);
     }
   }, [memoName]);
 
@@ -195,6 +208,11 @@ const MemoEditor = (props: Props) => {
       ...prevState,
       relationList,
     }));
+  };
+
+  const handleCreateActionRelations = (actionUids: string[]) => {
+    setActionRelationUids((current) => Array.from(new Set([...current, ...actionUids])));
+    setActionRelationsDirty(true);
   };
 
   const handleUploadResource = async (file: File) => {
@@ -298,6 +316,7 @@ const MemoEditor = (props: Props) => {
     });
     const content = editorRef.current?.getContent() ?? "";
     try {
+      let savedMemoName = memoName;
       // Update memo.
       if (memoName) {
         const prevMemo = await memoStore.getOrFetchMemoByName(memoName);
@@ -334,16 +353,16 @@ const MemoEditor = (props: Props) => {
             updateMask.add("display_time");
             memoPatch.displayTime = displayTime;
           }
-          if (updateMask.size === 0) {
+          if (updateMask.size === 0 && !actionRelationsDirty) {
             toast.error("No changes detected");
             if (onCancel) {
               onCancel();
             }
             return;
           }
-          const memo = await memoStore.updateMemo(memoPatch, Array.from(updateMask));
-          if (onConfirm) {
-            onConfirm(memo.name);
+          if (updateMask.size > 0) {
+            const memo = await memoStore.updateMemo(memoPatch, Array.from(updateMask));
+            savedMemoName = memo.name;
           }
         }
       } else {
@@ -371,14 +390,22 @@ const MemoEditor = (props: Props) => {
               })
               .then((memo) => memo);
         const memo = await request;
-        if (onConfirm) {
-          onConfirm(memo.name);
-        }
+        savedMemoName = memo.name;
+      }
+      if (savedMemoName && actionRelationsDirty) {
+        await actionApi.setMemoActionRelations(savedMemoName, actionRelationUids);
+        setActionRelationsDirty(false);
+      }
+      if (savedMemoName && onConfirm) {
+        onConfirm(savedMemoName);
+      }
+      if (!memoName) {
+        setActionRelationUids([]);
       }
       editorRef.current?.setContent("");
     } catch (error: any) {
       console.error(error);
-      toast.error(error.details);
+      toast.error(error instanceof Error ? error.message : error.details);
     }
 
     localStorage.removeItem(contentCacheKey);
@@ -477,6 +504,7 @@ const MemoEditor = (props: Props) => {
             <MarkdownMenu editorRef={editorRef} />
             <UploadResourceButton />
             <AddMemoRelationPopover editorRef={editorRef} />
+            <AddActionReferencePopover editorRef={editorRef} onCreateRelations={handleCreateActionRelations} />
             {workspaceMemoRelatedSetting.enableLocation && (
               <LocationSelector
                 location={state.location}

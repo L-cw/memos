@@ -1,5 +1,6 @@
 import { Button, Dropdown, Menu, MenuButton, MenuItem } from "@mui/joy";
-import { MoreVerticalIcon, PenLineIcon } from "lucide-react";
+import { LogOutIcon, MoreVerticalIcon, PenLineIcon } from "lucide-react";
+import { authServiceClient } from "@/grpcweb";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { useTranslate } from "@/utils/i18n";
 import showChangeMemberPasswordDialog from "../ChangeMemberPasswordDialog";
@@ -10,6 +11,11 @@ import AccessTokenSection from "./AccessTokenSection";
 const MyAccountSection = () => {
   const t = useTranslate();
   const user = useCurrentUser();
+
+  const handleSignOut = async () => {
+    await authServiceClient.signOut({});
+    window.location.href = "/auth";
+  };
 
   return (
     <div className="w-full gap-2 pt-2 pb-4">
@@ -39,6 +45,10 @@ const MyAccountSection = () => {
             <MenuItem onClick={() => showChangeMemberPasswordDialog(user)}>{t("setting.account-section.change-password")}</MenuItem>
           </Menu>
         </Dropdown>
+        <Button variant="outlined" color="danger" size="sm" onClick={handleSignOut}>
+          <LogOutIcon className="mr-1 h-4 w-4" />
+          {t("common.sign-out")}
+        </Button>
       </div>
 
       <AccessTokenSection />

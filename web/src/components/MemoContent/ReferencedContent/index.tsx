@@ -1,4 +1,5 @@
 import Error from "./Error";
+import ReferencedAction from "./ReferencedAction";
 import ReferencedMemo from "./ReferencedMemo";
 
 interface Props {
@@ -15,6 +16,9 @@ const ReferencedContent = ({ resourceName, params }: Props) => {
   const { resourceType, resourceId } = extractResourceTypeAndId(resourceName);
   if (resourceType === "memos") {
     return <ReferencedMemo resourceId={resourceId} params={params} />;
+  }
+  if (resourceType === "actions") {
+    return <ReferencedAction resourceId={resourceId} params={params} />;
   }
   return <Error message={`Unknown resource: ${resourceName}`} />;
 };

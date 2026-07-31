@@ -1,8 +1,9 @@
 swagger: "2.0"
 info:
-  title: api/v1/activity_service.proto
+  title: api/v1/action_service.proto
   version: version not set
 tags:
+  - name: ActionService
   - name: ActivityService
   - name: UserService
   - name: AuthService
@@ -19,6 +20,80 @@ consumes:
 produces:
   - application/json
 paths:
+  /api/v1/actions:
+    get:
+      operationId: ActionService_ListActions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListActionsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: pageSize
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: pageToken
+          in: query
+          required: false
+          type: string
+        - name: type
+          in: query
+          required: false
+          type: string
+          enum:
+            - ACTION_TYPE_UNSPECIFIED
+            - TASK
+            - GOAL
+            - PROJECT
+          default: ACTION_TYPE_UNSPECIFIED
+        - name: statuses
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+            enum:
+              - ACTION_STATUS_UNSPECIFIED
+              - TODO
+              - IN_PROGRESS
+              - DONE
+              - TERMINATED
+          collectionFormat: multi
+        - name: planDate
+          in: query
+          required: false
+          type: string
+        - name: pinnedOnly
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - ActionService
+    post:
+      operationId: ActionService_CreateAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: action
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1Action'
+      tags:
+        - ActionService
   /api/v1/auth/signin:
     post:
       summary: SignIn signs in the user with the given username and password.
@@ -723,6 +798,94 @@ paths:
             title: setting is the setting to update.
       tags:
         - WorkspaceSettingService
+  /api/v1/{action.name}:
+    patch:
+      operationId: ActionService_UpdateAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: action.name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: action
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              creator:
+                type: string
+                readOnly: true
+              type:
+                $ref: '#/definitions/v1ActionType'
+              status:
+                $ref: '#/definitions/v1ActionStatus'
+                readOnly: true
+              title:
+                type: string
+              description:
+                type: string
+              parent:
+                type: string
+              planDate:
+                type: string
+              deadline:
+                type: string
+                format: date-time
+              sortOrder:
+                type: string
+                format: int64
+              goal:
+                $ref: '#/definitions/v1GoalPayload'
+              children:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1Action'
+                readOnly: true
+              relatedMemos:
+                type: array
+                items:
+                  type: string
+                readOnly: true
+              createTime:
+                type: string
+                format: date-time
+                readOnly: true
+              updateTime:
+                type: string
+                format: date-time
+                readOnly: true
+              completeTime:
+                type: string
+                format: date-time
+                readOnly: true
+              pinned:
+                type: boolean
+              terminationReason:
+                type: string
+                readOnly: true
+              terminateTime:
+                type: string
+                format: date-time
+                readOnly: true
+              goalRecords:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1GoalRecord'
+                readOnly: true
+      tags:
+        - ActionService
   /api/v1/{identityProvider.name}:
     patch:
       summary: UpdateIdentityProvider updates an identity provider.
@@ -912,182 +1075,6 @@ paths:
         - MemoService
   /api/v1/{name_1}:
     get:
-      summary: GetUser gets a user by name.
-      operationId: UserService_GetUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1User'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_1
-          description: The name of the user.
-          in: path
-          required: true
-          type: string
-          pattern: users/[^/]+
-      tags:
-        - UserService
-    delete:
-      summary: DeleteIdentityProvider deletes an identity provider.
-      operationId: IdentityProviderService_DeleteIdentityProvider
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            type: object
-            properties: {}
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_1
-          description: The name of the identityProvider to delete.
-          in: path
-          required: true
-          type: string
-          pattern: identityProviders/[^/]+
-      tags:
-        - IdentityProviderService
-  /api/v1/{name_2}:
-    get:
-      summary: GetIdentityProvider gets an identity provider.
-      operationId: IdentityProviderService_GetIdentityProvider
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/apiV1IdentityProvider'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_2
-          description: The name of the identityProvider to get.
-          in: path
-          required: true
-          type: string
-          pattern: identityProviders/[^/]+
-      tags:
-        - IdentityProviderService
-    delete:
-      summary: DeleteInbox deletes an inbox.
-      operationId: InboxService_DeleteInbox
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            type: object
-            properties: {}
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_2
-          description: The name of the inbox to delete.
-          in: path
-          required: true
-          type: string
-          pattern: inboxes/[^/]+
-      tags:
-        - InboxService
-  /api/v1/{name_3}:
-    get:
-      summary: GetResource returns a resource by name.
-      operationId: ResourceService_GetResource
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1Resource'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_3
-          description: The name of the resource.
-          in: path
-          required: true
-          type: string
-          pattern: resources/[^/]+
-      tags:
-        - ResourceService
-    delete:
-      summary: DeleteResource deletes a resource by name.
-      operationId: ResourceService_DeleteResource
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            type: object
-            properties: {}
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_3
-          description: The name of the resource.
-          in: path
-          required: true
-          type: string
-          pattern: resources/[^/]+
-      tags:
-        - ResourceService
-  /api/v1/{name_4}:
-    get:
-      summary: GetMemo gets a memo.
-      operationId: MemoService_GetMemo
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/apiV1Memo'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_4
-          description: The name of the memo.
-          in: path
-          required: true
-          type: string
-          pattern: memos/[^/]+
-      tags:
-        - MemoService
-    delete:
-      summary: DeleteMemo deletes a memo.
-      operationId: MemoService_DeleteMemo
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            type: object
-            properties: {}
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googleRpcStatus'
-      parameters:
-        - name: name_4
-          description: The name of the memo.
-          in: path
-          required: true
-          type: string
-          pattern: memos/[^/]+
-      tags:
-        - MemoService
-  /api/v1/{name}:
-    get:
       summary: GetActivity returns the activity with the given id.
       operationId: ActivityService_GetActivity
       responses:
@@ -1100,7 +1087,7 @@ paths:
           schema:
             $ref: '#/definitions/googleRpcStatus'
       parameters:
-        - name: name
+        - name: name_1
           description: |-
             The name of the activity.
             Format: activities/{id}, id is the system generated auto-incremented id.
@@ -1124,7 +1111,7 @@ paths:
           schema:
             $ref: '#/definitions/googleRpcStatus'
       parameters:
-        - name: name
+        - name: name_1
           description: The name of the user.
           in: path
           required: true
@@ -1132,6 +1119,222 @@ paths:
           pattern: users/[^/]+
       tags:
         - UserService
+  /api/v1/{name_2}:
+    get:
+      summary: GetUser gets a user by name.
+      operationId: UserService_GetUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1User'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_2
+          description: The name of the user.
+          in: path
+          required: true
+          type: string
+          pattern: users/[^/]+
+      tags:
+        - UserService
+    delete:
+      summary: DeleteIdentityProvider deletes an identity provider.
+      operationId: IdentityProviderService_DeleteIdentityProvider
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_2
+          description: The name of the identityProvider to delete.
+          in: path
+          required: true
+          type: string
+          pattern: identityProviders/[^/]+
+      tags:
+        - IdentityProviderService
+  /api/v1/{name_3}:
+    get:
+      summary: GetIdentityProvider gets an identity provider.
+      operationId: IdentityProviderService_GetIdentityProvider
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/apiV1IdentityProvider'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_3
+          description: The name of the identityProvider to get.
+          in: path
+          required: true
+          type: string
+          pattern: identityProviders/[^/]+
+      tags:
+        - IdentityProviderService
+    delete:
+      summary: DeleteInbox deletes an inbox.
+      operationId: InboxService_DeleteInbox
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_3
+          description: The name of the inbox to delete.
+          in: path
+          required: true
+          type: string
+          pattern: inboxes/[^/]+
+      tags:
+        - InboxService
+  /api/v1/{name_4}:
+    get:
+      summary: GetResource returns a resource by name.
+      operationId: ResourceService_GetResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Resource'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_4
+          description: The name of the resource.
+          in: path
+          required: true
+          type: string
+          pattern: resources/[^/]+
+      tags:
+        - ResourceService
+    delete:
+      summary: DeleteResource deletes a resource by name.
+      operationId: ResourceService_DeleteResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_4
+          description: The name of the resource.
+          in: path
+          required: true
+          type: string
+          pattern: resources/[^/]+
+      tags:
+        - ResourceService
+  /api/v1/{name_5}:
+    get:
+      summary: GetMemo gets a memo.
+      operationId: MemoService_GetMemo
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/apiV1Memo'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_5
+          description: The name of the memo.
+          in: path
+          required: true
+          type: string
+          pattern: memos/[^/]+
+      tags:
+        - MemoService
+    delete:
+      summary: DeleteMemo deletes a memo.
+      operationId: MemoService_DeleteMemo
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name_5
+          description: The name of the memo.
+          in: path
+          required: true
+          type: string
+          pattern: memos/[^/]+
+      tags:
+        - MemoService
+  /api/v1/{name}:
+    get:
+      operationId: ActionService_GetAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+      tags:
+        - ActionService
+    delete:
+      operationId: ActionService_DeleteAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+      tags:
+        - ActionService
   /api/v1/{name}/access_tokens:
     get:
       summary: ListUserAccessTokens returns a list of access tokens for a user.
@@ -1208,6 +1411,51 @@ paths:
           type: string
       tags:
         - UserService
+  /api/v1/{name}/actions:
+    get:
+      operationId: ActionService_ListMemoActionRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListMemoActionRelationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: memos/[^/]+
+      tags:
+        - ActionService
+    patch:
+      operationId: ActionService_SetMemoActionRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: memos/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceSetMemoActionRelationsBody'
+      tags:
+        - ActionService
   /api/v1/{name}/comments:
     get:
       summary: ListMemoComments lists comments for a memo.
@@ -1257,6 +1505,51 @@ paths:
             $ref: '#/definitions/apiV1Memo'
       tags:
         - MemoService
+  /api/v1/{name}/memoRelations:
+    get:
+      operationId: ActionService_ListActionMemoRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListActionMemoRelationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+      tags:
+        - ActionService
+    patch:
+      operationId: ActionService_SetActionMemoRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties: {}
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceSetActionMemoRelationsBody'
+      tags:
+        - ActionService
   /api/v1/{name}/reactions:
     get:
       summary: ListMemoReactions lists reactions for a memo.
@@ -1447,6 +1740,150 @@ paths:
           pattern: users/[^/]+
       tags:
         - UserService
+  /api/v1/{name}:complete:
+    post:
+      operationId: ActionService_CompleteAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceCompleteActionBody'
+      tags:
+        - ActionService
+  /api/v1/{name}:move:
+    post:
+      operationId: ActionService_MoveAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceMoveActionBody'
+      tags:
+        - ActionService
+  /api/v1/{name}:reopen:
+    post:
+      operationId: ActionService_ReopenAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceReopenActionBody'
+      tags:
+        - ActionService
+  /api/v1/{name}:terminate:
+    post:
+      operationId: ActionService_TerminateGoal
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1Action'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionServiceTerminateGoalBody'
+      tags:
+        - ActionService
+  /api/v1/{parent}/goalRecords:
+    get:
+      operationId: ActionService_ListGoalRecords
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListGoalRecordsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: parent
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+      tags:
+        - ActionService
+    post:
+      operationId: ActionService_CreateGoalRecord
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1GoalRecord'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: parent
+          in: path
+          required: true
+          type: string
+          pattern: actions/[^/]+
+        - name: goalRecord
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1GoalRecord'
+      tags:
+        - ActionService
   /api/v1/{parent}/memos:
     get:
       summary: ListMemos lists memos with pagination and filter.
@@ -1914,6 +2351,37 @@ paths:
       tags:
         - ResourceService
 definitions:
+  ActionServiceCompleteActionBody:
+    type: object
+  ActionServiceMoveActionBody:
+    type: object
+    properties:
+      parent:
+        type: string
+      sortOrder:
+        type: string
+        format: int64
+  ActionServiceReopenActionBody:
+    type: object
+  ActionServiceSetActionMemoRelationsBody:
+    type: object
+    properties:
+      memoNames:
+        type: array
+        items:
+          type: string
+  ActionServiceSetMemoActionRelationsBody:
+    type: object
+    properties:
+      actionNames:
+        type: array
+        items:
+          type: string
+  ActionServiceTerminateGoalBody:
+    type: object
+    properties:
+      reason:
+        type: string
   ListNodeKind:
     type: string
     enum:
@@ -2517,6 +2985,91 @@ definitions:
             "@type": "type.googleapis.com/google.protobuf.Duration",
             "value": "1.212s"
           }
+  v1Action:
+    type: object
+    properties:
+      name:
+        type: string
+        readOnly: true
+      creator:
+        type: string
+        readOnly: true
+      type:
+        $ref: '#/definitions/v1ActionType'
+      status:
+        $ref: '#/definitions/v1ActionStatus'
+        readOnly: true
+      title:
+        type: string
+      description:
+        type: string
+      parent:
+        type: string
+      planDate:
+        type: string
+      deadline:
+        type: string
+        format: date-time
+      sortOrder:
+        type: string
+        format: int64
+      goal:
+        $ref: '#/definitions/v1GoalPayload'
+      children:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Action'
+        readOnly: true
+      relatedMemos:
+        type: array
+        items:
+          type: string
+        readOnly: true
+      createTime:
+        type: string
+        format: date-time
+        readOnly: true
+      updateTime:
+        type: string
+        format: date-time
+        readOnly: true
+      completeTime:
+        type: string
+        format: date-time
+        readOnly: true
+      pinned:
+        type: boolean
+      terminationReason:
+        type: string
+        readOnly: true
+      terminateTime:
+        type: string
+        format: date-time
+        readOnly: true
+      goalRecords:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1GoalRecord'
+        readOnly: true
+  v1ActionStatus:
+    type: string
+    enum:
+      - ACTION_STATUS_UNSPECIFIED
+      - TODO
+      - IN_PROGRESS
+      - DONE
+      - TERMINATED
+    default: ACTION_STATUS_UNSPECIFIED
+  v1ActionType:
+    type: string
+    enum:
+      - ACTION_TYPE_UNSPECIFIED
+      - TASK
+      - GOAL
+      - PROJECT
+    default: ACTION_TYPE_UNSPECIFIED
   v1Activity:
     type: object
     properties:
@@ -2614,6 +3167,42 @@ definitions:
     properties:
       symbol:
         type: string
+  v1GoalPayload:
+    type: object
+    properties:
+      current:
+        type: number
+        format: double
+      target:
+        type: number
+        format: double
+      unit:
+        type: string
+  v1GoalRecord:
+    type: object
+    properties:
+      name:
+        type: string
+        readOnly: true
+      action:
+        type: string
+        readOnly: true
+      delta:
+        type: number
+        format: double
+      valueAfter:
+        type: number
+        format: double
+        readOnly: true
+      note:
+        type: string
+      recordedTime:
+        type: string
+        format: date-time
+      createTime:
+        type: string
+        format: date-time
+        readOnly: true
   v1HTMLElementNode:
     type: object
     properties:
@@ -2714,6 +3303,24 @@ definitions:
         type: string
       url:
         type: string
+  v1ListActionMemoRelationsResponse:
+    type: object
+    properties:
+      memos:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1MemoReference'
+  v1ListActionsResponse:
+    type: object
+    properties:
+      actions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Action'
+      nextPageToken:
+        type: string
   v1ListAllUserStatsResponse:
     type: object
     properties:
@@ -2722,6 +3329,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1UserStats'
+  v1ListGoalRecordsResponse:
+    type: object
+    properties:
+      goalRecords:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1GoalRecord'
   v1ListIdentityProvidersResponse:
     type: object
     properties:
@@ -2743,6 +3358,14 @@ definitions:
         description: |-
           A token, which can be sent as `page_token` to retrieve the next page.
           If this field is omitted, there are no subsequent pages.
+  v1ListMemoActionRelationsResponse:
+    type: object
+    properties:
+      actions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1Action'
   v1ListMemoCommentsResponse:
     type: object
     properties:
@@ -2862,6 +3485,18 @@ definitions:
         type: boolean
       hasIncompleteTasks:
         type: boolean
+  v1MemoReference:
+    type: object
+    properties:
+      name:
+        type: string
+      title:
+        type: string
+      snippet:
+        type: string
+      updateTime:
+        type: string
+        format: date-time
   v1MemoRelation:
     type: object
     properties:

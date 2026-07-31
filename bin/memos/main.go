@@ -63,6 +63,11 @@ var (
 				slog.Error("failed to migrate", "error", err)
 				return
 			}
+			if err := ensureDefaultDevAccount(ctx, instanceProfile, storeInstance); err != nil {
+				cancel()
+				slog.Error("failed to ensure default development account", "error", err)
+				return
+			}
 
 			s, err := server.NewServer(ctx, instanceProfile, storeInstance)
 			if err != nil {

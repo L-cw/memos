@@ -17,7 +17,7 @@ WORKDIR /backend-build
 COPY . .
 COPY --from=frontend /frontend-build/web/dist /backend-build/server/router/frontend/dist
 
-RUN go build -o memos ./bin/memos/main.go
+RUN go build -o memos ./bin/memos
 
 # Make workspace with above generated files.
 FROM registry.cn-hangzhou.aliyuncs.com/goodlcw1-prod/alpine:latest AS monolithic

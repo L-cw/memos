@@ -22,7 +22,7 @@ const NavigationDrawer = () => {
 
   return (
     <>
-      <Button variant="plain" className="!bg-transparent px-2" onClick={toggleDrawer(true)}>
+      <Button variant="plain" className="!bg-transparent px-2" aria-label="打开导航" onClick={toggleDrawer(true)}>
         <MenuIcon className="w-5 h-auto dark:text-gray-400" />
       </Button>
       <Drawer anchor="left" size="sm" open={open} onClose={toggleDrawer(false)}>

@@ -1,0 +1,254 @@
+syntax = "proto3";
+
+package memos.api.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "gen/api/v1";
+
+service ActionService {
+  rpc CreateAction(CreateActionRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/api/v1/actions"
+      body: "action"
+    };
+  }
+
+  rpc ListActions(ListActionsRequest) returns (ListActionsResponse) {
+    option (google.api.http) = {get: "/api/v1/actions"};
+  }
+
+  rpc GetAction(GetActionRequest) returns (Action) {
+    option (google.api.http) = {get: "/api/v1/{name=actions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  rpc UpdateAction(UpdateActionRequest) returns (Action) {
+    option (google.api.http) = {
+      patch: "/api/v1/{action.name=actions/*}"
+      body: "action"
+    };
+    option (google.api.method_signature) = "action,update_mask";
+  }
+
+  rpc DeleteAction(DeleteActionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/api/v1/{name=actions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  rpc CompleteAction(CompleteActionRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/api/v1/{name=actions/*}:complete"
+      body: "*"
+    };
+  }
+
+  rpc ReopenAction(ReopenActionRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/api/v1/{name=actions/*}:reopen"
+      body: "*"
+    };
+  }
+
+  rpc TerminateGoal(TerminateGoalRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/api/v1/{name=actions/*}:terminate"
+      body: "*"
+    };
+  }
+
+  rpc MoveAction(MoveActionRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/api/v1/{name=actions/*}:move"
+      body: "*"
+    };
+  }
+
+  rpc CreateGoalRecord(CreateGoalRecordRequest) returns (GoalRecord) {
+    option (google.api.http) = {
+      post: "/api/v1/{parent=actions/*}/goalRecords"
+      body: "goal_record"
+    };
+  }
+
+  rpc ListGoalRecords(ListGoalRecordsRequest) returns (ListGoalRecordsResponse) {
+    option (google.api.http) = {get: "/api/v1/{parent=actions/*}/goalRecords"};
+  }
+
+  rpc SetActionMemoRelations(SetActionMemoRelationsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      patch: "/api/v1/{name=actions/*}/memoRelations"
+      body: "*"
+    };
+  }
+
+  rpc ListActionMemoRelations(ListActionMemoRelationsRequest) returns (ListActionMemoRelationsResponse) {
+    option (google.api.http) = {get: "/api/v1/{name=actions/*}/memoRelations"};
+  }
+
+  rpc SetMemoActionRelations(SetMemoActionRelationsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      patch: "/api/v1/{name=memos/*}/actions"
+      body: "*"
+    };
+  }
+
+  rpc ListMemoActionRelations(ListMemoActionRelationsRequest) returns (ListMemoActionRelationsResponse) {
+    option (google.api.http) = {get: "/api/v1/{name=memos/*}/actions"};
+  }
+}
+
+enum ActionType {
+  ACTION_TYPE_UNSPECIFIED = 0;
+  TASK = 1;
+  GOAL = 2;
+  PROJECT = 3;
+}
+
+enum ActionStatus {
+  ACTION_STATUS_UNSPECIFIED = 0;
+  TODO = 1;
+  IN_PROGRESS = 2;
+  DONE = 3;
+  TERMINATED = 4;
+}
+
+message GoalPayload {
+  double current = 1;
+  double target = 2;
+  string unit = 3;
+}
+
+message GoalRecord {
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string action = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  double delta = 3;
+  double value_after = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string note = 5;
+  google.protobuf.Timestamp recorded_time = 6;
+  google.protobuf.Timestamp create_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message MemoReference {
+  string name = 1;
+  string title = 2;
+  string snippet = 3;
+  google.protobuf.Timestamp update_time = 4;
+}
+
+message Action {
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string creator = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  ActionType type = 3;
+  ActionStatus status = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string title = 5;
+  string description = 6;
+  optional string parent = 7;
+  string plan_date = 8;
+  google.protobuf.Timestamp deadline = 9;
+  int64 sort_order = 10;
+  GoalPayload goal = 11;
+  repeated Action children = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated string related_memos = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp complete_time = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
+  bool pinned = 17;
+  string termination_reason = 18 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp terminate_time = 19 [(google.api.field_behavior) = OUTPUT_ONLY];
+  repeated GoalRecord goal_records = 20 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message CreateActionRequest {
+  Action action = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListActionsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  optional ActionType type = 3;
+  repeated ActionStatus statuses = 4;
+  string plan_date = 5;
+  bool pinned_only = 6;
+}
+
+message ListActionsResponse {
+  repeated Action actions = 1;
+  string next_page_token = 2;
+}
+
+message GetActionRequest {
+  string name = 1;
+}
+
+message UpdateActionRequest {
+  Action action = 1 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+message DeleteActionRequest {
+  string name = 1;
+}
+
+message CompleteActionRequest {
+  string name = 1;
+}
+
+message ReopenActionRequest {
+  string name = 1;
+}
+
+message TerminateGoalRequest {
+  string name = 1;
+  string reason = 2;
+}
+
+message MoveActionRequest {
+  string name = 1;
+  optional string parent = 2;
+  int64 sort_order = 3;
+}
+
+message CreateGoalRecordRequest {
+  string parent = 1;
+  GoalRecord goal_record = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListGoalRecordsRequest {
+  string parent = 1;
+}
+
+message ListGoalRecordsResponse {
+  repeated GoalRecord goal_records = 1;
+}
+
+message SetActionMemoRelationsRequest {
+  string name = 1;
+  repeated string memo_names = 2;
+}
+
+message ListActionMemoRelationsRequest {
+  string name = 1;
+}
+
+message ListActionMemoRelationsResponse {
+  repeated MemoReference memos = 1;
+}
+
+message SetMemoActionRelationsRequest {
+  string name = 1;
+  repeated string action_names = 2;
+}
+
+message ListMemoActionRelationsRequest {
+  string name = 1;
+}
+
+message ListMemoActionRelationsResponse {
+  repeated Action actions = 1;
+}

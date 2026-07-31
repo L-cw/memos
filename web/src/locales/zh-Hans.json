@@ -7,7 +7,22 @@
     "sign-in-tip": "已有账户？",
     "sign-up-tip": "还没有账户？"
   },
-    "common": {
+  "action": {
+    "views": {
+      "today": "今日",
+      "upcoming": "近期",
+      "all": "全部",
+      "completed": "已完成",
+      "projects": "项目",
+      "goals": "目标"
+    },
+    "workspace": {
+      "memos": "备忘录",
+      "action": "行动",
+      "switch": "切换工作区"
+    }
+  },
+  "common": {
     "about": "关于",
     "add": "增加",
     "admin": "管理",

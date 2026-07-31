@@ -7,6 +7,21 @@
     "sign-in-tip": "Already have an account?",
     "sign-up-tip": "Don't have an account yet?"
   },
+  "action": {
+    "views": {
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "all": "All",
+      "completed": "Completed",
+      "projects": "Projects",
+      "goals": "Goals"
+    },
+    "workspace": {
+      "memos": "Memos",
+      "action": "Action",
+      "switch": "Switch workspace"
+    }
+  },
   "common": {
     "about": "About",
     "add": "Add",
