@@ -1,23 +1,25 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import App from "@/App";
 import RootLayout from "@/layouts/RootLayout";
 import SuspenseWrapper from "@/layouts/SuspenseWrapper";
-import About from "@/pages/About";
-import Actions from "@/pages/Actions";
-import AdminSignIn from "@/pages/AdminSignIn";
-import Archived from "@/pages/Archived";
-import AuthCallback from "@/pages/AuthCallback";
-import Explore from "@/pages/Explore";
-import Home from "@/pages/Home";
-import Inboxes from "@/pages/Inboxes";
-import MemoDetail from "@/pages/MemoDetail";
 import NotFound from "@/pages/NotFound";
 import PermissionDenied from "@/pages/PermissionDenied";
-import Resources from "@/pages/Resources";
-import Setting from "@/pages/Setting";
-import SignIn from "@/pages/SignIn";
-import SignUp from "@/pages/SignUp";
-import UserProfile from "@/pages/UserProfile";
+
+const About = lazy(() => import("@/pages/About"));
+const Actions = lazy(() => import("@/pages/Actions"));
+const AdminSignIn = lazy(() => import("@/pages/AdminSignIn"));
+const Archived = lazy(() => import("@/pages/Archived"));
+const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
+const Explore = lazy(() => import("@/pages/Explore"));
+const Home = lazy(() => import("@/pages/Home"));
+const Inboxes = lazy(() => import("@/pages/Inboxes"));
+const MemoDetail = lazy(() => import("@/pages/MemoDetail"));
+const Resources = lazy(() => import("@/pages/Resources"));
+const Setting = lazy(() => import("@/pages/Setting"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const SignUp = lazy(() => import("@/pages/SignUp"));
+const UserProfile = lazy(() => import("@/pages/UserProfile"));
 
 export enum Routes {
   ROOT = "/",

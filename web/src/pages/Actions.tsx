@@ -25,7 +25,7 @@ import ActionDetailDrawer from "@/components/Action/ActionDetailDrawer";
 import ActionMemoPickerDialog from "@/components/Action/ActionMemoPickerDialog";
 import ActionTypeBadge from "@/components/Action/ActionTypeBadge";
 import MobileHeader from "@/components/MobileHeader";
-import { filterActionsByView, flattenActions, getActionViewCounts, projectProgress, useActionStore } from "@/store/v1";
+import { filterActionsByView, flattenActions, getActionViewCounts, projectProgress, sortActionChildren, useActionStore } from "@/store/v1";
 import { ACTION_VIEWS, ActionItem, ActionView, isActionView } from "@/types/action";
 import { cn } from "@/utils";
 import { Translations, useTranslate } from "@/utils/i18n";
@@ -123,6 +123,12 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
   const isTerminated = action.status === "TERMINATED";
   const project = projectProgress(action);
   const goalPercent = action.goal ? Math.min(100, Math.max(0, (action.goal.current / action.goal.target) * 100)) : 0;
+  const sortedChildren = sortActionChildren(action.children);
+  const visibleChildren = expanded
+    ? sortedChildren
+    : action.type === "PROJECT"
+      ? sortedChildren.filter((child) => !["DONE", "TERMINATED"].includes(child.status)).slice(0, 4)
+      : [];
 
   const handleComplete = async () => {
     const result = await toggleComplete(action.uid);
@@ -159,7 +165,7 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
 
         <button className="min-w-0 text-left" type="button" onClick={() => selectAction(action.uid)}>
           <div className="flex min-w-0 items-center gap-2">
-            <ActionTypeBadge type={action.type} compact />
+            <ActionTypeBadge type={action.type} compact iconOnly />
             <h3
               className={cn(
                 "min-w-0 truncate text-sm font-medium text-zinc-900 dark:text-zinc-100",
@@ -243,20 +249,25 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
         )}
       </div>
 
-      {expanded && action.children.length > 0 && (
+      {visibleChildren.length > 0 && (
         <div className="border-t border-zinc-100 bg-zinc-50 px-4 py-2 pl-14 dark:border-zinc-800 dark:bg-zinc-950/40">
-          {action.children.map((child) => (
-            <button
-              className="flex w-full min-w-0 items-center gap-2 py-2 text-left"
-              type="button"
-              key={child.uid}
-              onClick={() => selectAction(child.uid)}
-            >
-              {child.status === "DONE" ? (
-                <CircleCheckBigIcon className="h-4 w-4 shrink-0 text-green-600" />
-              ) : (
-                <CircleIcon className="h-4 w-4 shrink-0 text-zinc-400" />
-              )}
+          {visibleChildren.map((child) => (
+            <div className="flex w-full min-w-0 items-center gap-2 py-2 text-left" key={child.uid}>
+              <button
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                type="button"
+                aria-label={child.status === "DONE" ? `重新打开 ${child.title}` : `完成 ${child.title}`}
+                onClick={async () => {
+                  const result = await toggleComplete(child.uid);
+                  result.ok ? toast.success(result.message) : toast.error(result.message);
+                }}
+              >
+                {child.status === "DONE" ? (
+                  <CircleCheckBigIcon className="h-4 w-4 text-green-600" />
+                ) : (
+                  <CircleIcon className="h-4 w-4 text-zinc-400" />
+                )}
+              </button>
               <span
                 className={cn(
                   "min-w-0 flex-1 truncate text-sm text-zinc-700 dark:text-zinc-300",
@@ -266,7 +277,7 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
                 {child.title}
               </span>
               <span className="shrink-0 text-xs text-zinc-400">{formatDate(child.planDate)}</span>
-            </button>
+            </div>
           ))}
         </div>
       )}

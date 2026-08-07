@@ -109,6 +109,22 @@ export const useUserStore = create(
       delete userMap[name];
       set({ userMapByName: userMap });
     },
+    fetchAuthStatus: async () => {
+      const user = await authServiceClient.getAuthStatus({});
+      const userMap = get().userMapByName;
+      userMap[user.name] = user;
+      set({ currentUser: user.name, userMapByName: userMap });
+      return user;
+    },
+    fetchCurrentUserSetting: async () => {
+      const setting = await userServiceClient.getUserSetting({});
+      const userSetting = UserSetting.fromPartial({
+        ...getDefaultUserSetting(),
+        ...setting,
+      });
+      set({ userSetting });
+      return userSetting;
+    },
     fetchCurrentUser: async () => {
       const user = await authServiceClient.getAuthStatus({});
       const userMap = get().userMapByName;

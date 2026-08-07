@@ -9,6 +9,7 @@ import {
   LinkIcon,
   ListTreeIcon,
   NotebookTabsIcon,
+  PencilIcon,
   PinIcon,
   PinOffIcon,
   PlusIcon,
@@ -21,9 +22,10 @@ import {
 } from "lucide-react";
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
-import { findAction, flattenActions, projectProgress, useActionStore } from "@/store/v1";
+import { findAction, flattenActions, projectProgress, sortActionChildren, useActionStore } from "@/store/v1";
 import { ActionItem, UpdateActionInput } from "@/types/action";
 import { cn } from "@/utils";
+import ActionMemoPreviewDialog from "./ActionMemoPreviewDialog";
 import ActionTypeBadge from "./ActionTypeBadge";
 
 const inputClass =
@@ -54,44 +56,148 @@ const ActionStatus = ({ action }: { action: ActionItem }) => {
 };
 
 const TreeItems = ({ items, depth = 0 }: { items: ActionItem[]; depth?: number }) => {
-  const toggleComplete = useActionStore((state) => state.toggleComplete);
-
   return (
     <>
-      {items.map((item) => (
-        <div key={item.uid}>
-          <div
-            className="grid min-h-10 grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2 border-b border-zinc-100 py-1.5 last:border-b-0 dark:border-zinc-800"
-            style={{ paddingLeft: `${Math.min(depth, 3) * 18}px` }}
-          >
-            <button
-              className={cn(
-                "flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800",
-                item.status === "DONE" && "text-green-600 dark:text-green-400",
-              )}
-              type="button"
-              aria-label={item.status === "DONE" ? `重新打开 ${item.title}` : `完成 ${item.title}`}
-              onClick={async () => {
-                const result = await toggleComplete(item.uid);
-                result.ok ? toast.success(result.message) : toast.error(result.message);
-              }}
-            >
-              {item.status === "DONE" ? <CircleCheckBigIcon className="h-4 w-4" /> : <CircleIcon className="h-4 w-4" />}
-            </button>
-            <span
-              className={cn(
-                "min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200",
-                item.status === "DONE" && "text-zinc-400 line-through",
-              )}
-            >
-              {item.title}
-            </span>
-            <span className="text-xs text-zinc-400">{item.planDate ? dayjs(item.planDate).format("M月D日") : ""}</span>
-          </div>
-          {item.children.length > 0 && <TreeItems items={item.children} depth={depth + 1} />}
-        </div>
+      {sortActionChildren(items).map((item) => (
+        <TreeItem item={item} depth={depth} key={item.uid} />
       ))}
     </>
+  );
+};
+
+const TreeItem = ({ item, depth }: { item: ActionItem; depth: number }) => {
+  const toggleComplete = useActionStore((state) => state.toggleComplete);
+  const updateAction = useActionStore((state) => state.updateAction);
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(item.title);
+  const [planDate, setPlanDate] = useState(item.planDate || "");
+  const [saving, setSaving] = useState(false);
+  const paddingLeft = `${Math.min(depth, 3) * 18}px`;
+
+  useEffect(() => {
+    if (editing) return;
+    setTitle(item.title);
+    setPlanDate(item.planDate || "");
+  }, [editing, item.planDate, item.title]);
+
+  const closeEditor = () => {
+    setTitle(item.title);
+    setPlanDate(item.planDate || "");
+    setEditing(false);
+  };
+
+  const handleEditSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const normalizedTitle = String(data.get("title") || "").trim();
+    if (!normalizedTitle) {
+      toast.error("子项内容不能为空");
+      return;
+    }
+    setSaving(true);
+    const result = await updateAction(item.uid, {
+      title: normalizedTitle,
+      description: item.description,
+      planDate: String(data.get("planDate") || ""),
+      deadline: item.deadline,
+    });
+    setSaving(false);
+    if (result.ok) {
+      toast.success("子项已保存");
+      setEditing(false);
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  return (
+    <div>
+      {editing ? (
+        <form
+          className="grid min-h-10 grid-cols-[110px_minmax(0,1fr)_28px_28px] items-center gap-2 border-b border-zinc-100 py-1.5 dark:border-zinc-800"
+          style={{ paddingLeft }}
+          onSubmit={handleEditSubmit}
+        >
+          <input
+            className={cn(inputClass, "px-2 py-1.5 text-xs")}
+            name="planDate"
+            type="date"
+            value={planDate}
+            aria-label={`${item.title} 计划日期`}
+            onChange={(event) => setPlanDate(event.target.value)}
+          />
+          <input
+            className={cn(inputClass, "min-w-0 px-2 py-1.5")}
+            name="title"
+            value={title}
+            aria-label={`${item.title} 内容`}
+            maxLength={80}
+            autoFocus
+            onChange={(event) => setTitle(event.target.value)}
+          />
+          <Tooltip title="保存子项" placement="top">
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded text-green-600 hover:bg-green-50 disabled:opacity-50 dark:text-green-400 dark:hover:bg-green-950/30"
+              type="submit"
+              disabled={saving}
+              aria-label={`保存 ${item.title}`}
+            >
+              <CheckIcon className="h-3.5 w-3.5" />
+            </button>
+          </Tooltip>
+          <Tooltip title="取消编辑" placement="top">
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              type="button"
+              aria-label={`取消编辑 ${item.title}`}
+              onClick={closeEditor}
+            >
+              <XIcon className="h-3.5 w-3.5" />
+            </button>
+          </Tooltip>
+        </form>
+      ) : (
+        <div
+          className="grid min-h-10 grid-cols-[28px_minmax(0,1fr)_auto_28px] items-center gap-2 border-b border-zinc-100 py-1.5 last:border-b-0 dark:border-zinc-800"
+          style={{ paddingLeft }}
+        >
+          <button
+            className={cn(
+              "flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800",
+              item.status === "DONE" && "text-green-600 dark:text-green-400",
+            )}
+            type="button"
+            aria-label={item.status === "DONE" ? `重新打开 ${item.title}` : `完成 ${item.title}`}
+            onClick={async () => {
+              const result = await toggleComplete(item.uid);
+              result.ok ? toast.success(result.message) : toast.error(result.message);
+            }}
+          >
+            {item.status === "DONE" ? <CircleCheckBigIcon className="h-4 w-4" /> : <CircleIcon className="h-4 w-4" />}
+          </button>
+          <span
+            className={cn(
+              "min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200",
+              item.status === "DONE" && "text-zinc-400 line-through",
+            )}
+          >
+            {item.title}
+          </span>
+          <span className="text-xs text-zinc-400">{item.planDate ? dayjs(item.planDate).format("M月D日") : ""}</span>
+          <Tooltip title="编辑子项" placement="left">
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              type="button"
+              aria-label={`编辑 ${item.title}`}
+              onClick={() => setEditing(true)}
+            >
+              <PencilIcon className="h-3.5 w-3.5" />
+            </button>
+          </Tooltip>
+        </div>
+      )}
+      {item.children.length > 0 && <TreeItems items={item.children} depth={depth + 1} />}
+    </div>
   );
 };
 
@@ -117,6 +223,8 @@ const ActionDetailDrawer = () => {
   const [terminateDialogOpen, setTerminateDialogOpen] = useState(false);
   const [parentUid, setParentUid] = useState("");
   const [moving, setMoving] = useState(false);
+  const [childTitle, setChildTitle] = useState("");
+  const [previewMemoName, setPreviewMemoName] = useState<string>();
 
   useEffect(() => {
     if (!action) return;
@@ -129,6 +237,8 @@ const ActionDetailDrawer = () => {
     setConfirmDelete(false);
     setTerminateDialogOpen(false);
     setParentUid(action.parentUid || "");
+    setChildTitle("");
+    setPreviewMemoName(undefined);
   }, [action?.uid]);
 
   const relatedMemos = useMemo(
@@ -150,7 +260,12 @@ const ActionDetailDrawer = () => {
       return;
     }
     const result = await updateAction(action.uid, { ...draft, title, description: draft.description.trim() });
-    result.ok ? toast.success(result.message) : toast.error(result.message);
+    if (result.ok) {
+      toast.success(result.message);
+      selectAction();
+    } else {
+      toast.error(result.message);
+    }
   };
 
   const handleTogglePin = async () => {
@@ -191,11 +306,15 @@ const ActionDetailDrawer = () => {
 
   const handleChildSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     const title = String(data.get("title") || "").trim();
     if (!title) return;
     const result = await addChild(action.uid, title, String(data.get("planDate") || ""));
-    if (result.ok) event.currentTarget.reset();
+    if (result.ok) {
+      form.reset();
+      setChildTitle("");
+    }
     result.ok ? toast.success(result.message) : toast.error(result.message);
   };
 
@@ -482,11 +601,7 @@ const ActionDetailDrawer = () => {
                   <p className="py-3 text-sm text-zinc-400">暂无子项</p>
                 )}
               </div>
-              <form
-                className="grid gap-2 sm:grid-cols-[130px_minmax(0,1fr)_auto]"
-                onSubmit={handleChildSubmit}
-                onKeyDown={preventInputEnterSubmit}
-              >
+              <form className="grid gap-2 sm:grid-cols-[130px_minmax(0,1fr)_auto]" onSubmit={handleChildSubmit}>
                 <input
                   className={inputClass}
                   name="planDate"
@@ -494,7 +609,35 @@ const ActionDetailDrawer = () => {
                   defaultValue={dayjs().format("YYYY-MM-DD")}
                   aria-label="子项计划日期"
                 />
-                <input className={inputClass} name="title" placeholder="添加 Todo 子项" maxLength={80} required />
+                <div className="relative">
+                  <input
+                    className={cn(inputClass, "pr-9")}
+                    name="title"
+                    value={childTitle}
+                    aria-label="子项标题"
+                    placeholder="添加 Todo 子项"
+                    maxLength={80}
+                    required
+                    onChange={(event) => setChildTitle(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+                      event.preventDefault();
+                      event.currentTarget.form?.requestSubmit();
+                    }}
+                  />
+                  {childTitle && (
+                    <Tooltip title="清空" placement="top">
+                      <button
+                        className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        type="button"
+                        aria-label="清空子项标题"
+                        onClick={() => setChildTitle("")}
+                      >
+                        <XIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </Tooltip>
+                  )}
+                </div>
                 <button
                   className="inline-flex items-center justify-center gap-1.5 rounded-md border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
                   type="submit"
@@ -529,10 +672,10 @@ const ActionDetailDrawer = () => {
                     <span className="flex h-8 w-8 items-center justify-center rounded bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                       <NotebookTabsIcon className="h-4 w-4" />
                     </span>
-                    <span className="min-w-0">
+                    <button className="min-w-0 text-left" type="button" onClick={() => setPreviewMemoName(memo.name)}>
                       <span className="block truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">{memo.title}</span>
                       <span className="block truncate text-xs text-zinc-500">{memo.snippet}</span>
-                    </span>
+                    </button>
                     <Tooltip title="移除关联" placement="left">
                       <button
                         className="flex h-8 w-8 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-red-600 dark:hover:bg-zinc-800"
@@ -578,6 +721,8 @@ const ActionDetailDrawer = () => {
           </div>
         </footer>
       </aside>
+
+      {previewMemoName && <ActionMemoPreviewDialog memoName={previewMemoName} onClose={() => setPreviewMemoName(undefined)} />}
 
       {terminateDialogOpen && (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-zinc-950/50 p-4" role="presentation">

@@ -26,10 +26,10 @@ const App = () => {
 
   // Redirect to sign up page if no instance owner.
   useEffect(() => {
-    if (!workspaceProfile.owner) {
+    if (commonContext.profileLoaded && !workspaceProfile.owner) {
       navigateTo("/auth/signup");
     }
-  }, [workspaceProfile.owner]);
+  }, [commonContext.profileLoaded, workspaceProfile.owner]);
 
   useEffect(() => {
     const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");

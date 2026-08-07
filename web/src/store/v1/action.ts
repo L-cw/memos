@@ -11,6 +11,18 @@ export const findAction = (actions: ActionItem[], uid?: string): ActionItem | un
   return flattenActions(actions).find((action) => action.uid === uid);
 };
 
+export const sortActionChildren = (actions: ActionItem[]): ActionItem[] =>
+  actions
+    .map((action, index) => ({ action, index }))
+    .sort((left, right) => {
+      const leftCompleted = ["DONE", "TERMINATED"].includes(left.action.status);
+      const rightCompleted = ["DONE", "TERMINATED"].includes(right.action.status);
+      if (leftCompleted !== rightCompleted) return leftCompleted ? 1 : -1;
+      if (left.action.sortOrder !== right.action.sortOrder) return left.action.sortOrder - right.action.sortOrder;
+      return left.index - right.index;
+    })
+    .map(({ action }) => action);
+
 export const projectProgress = (action: ActionItem) => {
   const descendants = flattenActions(action.children);
   return {
@@ -155,7 +167,7 @@ export const useActionStore = create<ActionState>((set, get) => {
       try {
         const created = await actionApi.createAction(input);
         await reloadActions();
-        set({ selectedActionUid: created.uid, createDialogOpen: false });
+        set({ selectedActionUid: input.type === "TASK" ? undefined : created.uid, createDialogOpen: false });
         return { ok: true, message: "Action 已创建" };
       } catch (error) {
         return { ok: false, message: getErrorMessage(error) };

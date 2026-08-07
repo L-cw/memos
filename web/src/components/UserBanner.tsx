@@ -31,12 +31,15 @@ const UserBanner = (props: Props) => {
           <UserAvatar className="shrink-0" avatarUrl={avatarUrl} />
           {!collapsed && <span className="ml-2 min-w-0 truncate text-base font-medium text-slate-800 dark:text-gray-300">{title}</span>}
         </div>
-        <WorkspaceModeSwitcher collapsed={collapsed} />
+        {collapsed && <WorkspaceModeSwitcher collapsed />}
       </div>
       {!collapsed && (
-        <p className="px-3 pb-1 text-xs tabular-nums text-zinc-500 dark:text-zinc-500">
-          {dayjs().format("M月D日")} · {weekdayLabels[dayjs().day()]}
-        </p>
+        <div className="flex items-center justify-between gap-2 px-3 pb-1">
+          <p className="min-w-0 truncate text-xs tabular-nums text-zinc-500 dark:text-zinc-500">
+            {dayjs().format("M月D日")} · {weekdayLabels[dayjs().day()]}
+          </p>
+          <WorkspaceModeSwitcher />
+        </div>
       )}
     </div>
   );

@@ -34,6 +34,7 @@ interface Props {
   showCreator?: boolean;
   showVisibility?: boolean;
   showPinned?: boolean;
+  readonlyPreview?: boolean;
   className?: string;
   parentPage?: string;
   customComment?: (memo: Memo, creator: User) => void;
@@ -62,7 +63,7 @@ const MemoView: React.FC<Props> = (props: Props) => {
   ).length;
   const relativeTimeFormat = Date.now() - memo.displayTime!.getTime() > 1000 * 60 * 60 * 24 ? "datetime" : "auto";
   const isArchived = memo.state === State.ARCHIVED;
-  const readonly = memo.creator !== user?.name && !isSuperUser(user);
+  const readonly = props.readonlyPreview || (memo.creator !== user?.name && !isSuperUser(user));
   const isInMemoDetailPage = location.pathname.startsWith(memoLink(memo.name));
   const parentPage = props.parentPage || location.pathname;
   const isShowPinned = props.showPinned && memo.pinned;
@@ -176,20 +177,30 @@ const MemoView: React.FC<Props> = (props: Props) => {
             <div className="w-auto max-w-[calc(100%-8rem)] flex flex-row justify-start items-center">
               {props.showCreator && creator ? (
                 <div className="w-full flex flex-row justify-start items-center">
-                  <Link className="w-auto hover:opacity-80" to={`/u/${encodeURIComponent(creator.username)}`} viewTransition>
+                  {props.readonlyPreview ? (
                     <UserAvatar className="mr-2 shrink-0" avatarUrl={creator.avatarUrl} />
-                  </Link>
-                  <div className="w-full flex flex-col justify-center items-start">
-                    <Link
-                      className="w-full block leading-tight hover:opacity-80 truncate text-gray-600 dark:text-gray-400"
-                      to={`/u/${encodeURIComponent(creator.username)}`}
-                      viewTransition
-                    >
-                      {creator.nickname || creator.username}
+                  ) : (
+                    <Link className="w-auto hover:opacity-80" to={`/u/${encodeURIComponent(creator.username)}`} viewTransition>
+                      <UserAvatar className="mr-2 shrink-0" avatarUrl={creator.avatarUrl} />
                     </Link>
+                  )}
+                  <div className="w-full flex flex-col justify-center items-start">
+                    {props.readonlyPreview ? (
+                      <span className="w-full truncate leading-tight text-gray-600 dark:text-gray-400">
+                        {creator.nickname || creator.username}
+                      </span>
+                    ) : (
+                      <Link
+                        className="w-full block leading-tight hover:opacity-80 truncate text-gray-600 dark:text-gray-400"
+                        to={`/u/${encodeURIComponent(creator.username)}`}
+                        viewTransition
+                      >
+                        {creator.nickname || creator.username}
+                      </Link>
+                    )}
                     <div
                       className="w-auto -mt-0.5 text-xs leading-tight text-gray-400 dark:text-gray-500 select-none"
-                      onClick={handleClickTime}
+                      onClick={props.readonlyPreview ? undefined : handleClickTime}
                     >
                       {displayTime}
                     </div>
@@ -210,38 +221,43 @@ const MemoView: React.FC<Props> = (props: Props) => {
                 )}
               </>
             )}
-            <div className="flex flex-row justify-end items-center select-none shrink-0 gap-2">
-              <div className="w-auto invisible group-hover:visible flex flex-row justify-between items-center gap-2">
-                {props.showVisibility && memo.visibility !== Visibility.PRIVATE && (
-                  <Tooltip title={t(`memo.visibility.${convertVisibilityToString(memo.visibility).toLowerCase()}` as any)} placement="top">
-                    <span className="flex justify-center items-center hover:opacity-70">
-                      <VisibilityIcon visibility={memo.visibility} />
+            {!props.readonlyPreview && (
+              <div className="flex flex-row justify-end items-center select-none shrink-0 gap-2">
+                <div className="w-auto invisible group-hover:visible flex flex-row justify-between items-center gap-2">
+                  {props.showVisibility && memo.visibility !== Visibility.PRIVATE && (
+                    <Tooltip
+                      title={t(`memo.visibility.${convertVisibilityToString(memo.visibility).toLowerCase()}` as any)}
+                      placement="top"
+                    >
+                      <span className="flex justify-center items-center hover:opacity-70">
+                        <VisibilityIcon visibility={memo.visibility} />
+                      </span>
+                    </Tooltip>
+                  )}
+                  {currentUser && !isArchived && <ReactionSelector className="border-none w-auto h-auto" memo={memo} />}
+                </div>
+                {!isInMemoDetailPage && (workspaceMemoRelatedSetting.enableComment || commentAmount > 0) && (
+                  <div
+                    className={cn(
+                      "flex flex-row justify-start items-center hover:opacity-70",
+                      commentAmount === 0 && "invisible group-hover:visible",
+                    )}
+                    onClick={() => handleComment(memo)}
+                  >
+                    <MessageCircleMoreIcon className="w-4 h-4 mx-auto text-gray-500 dark:text-gray-400" />
+                    {commentAmount > 0 && <span className="text-xs text-gray-500 dark:text-gray-400">{commentAmount}</span>}
+                  </div>
+                )}
+                {isShowPinned && (
+                  <Tooltip title={t("common.unpin")} placement="top">
+                    <span className="cursor-pointer">
+                      <BookmarkIcon className="w-4 h-auto text-amber-500" onClick={onPinIconClick} />
                     </span>
                   </Tooltip>
                 )}
-                {currentUser && !isArchived && <ReactionSelector className="border-none w-auto h-auto" memo={memo} />}
+                <MemoActionMenu className="-ml-1" memo={memo} readonly={readonly} onEdit={() => setShowEditor(true)} />
               </div>
-              {!isInMemoDetailPage && (workspaceMemoRelatedSetting.enableComment || commentAmount > 0) && (
-                <div
-                  className={cn(
-                    "flex flex-row justify-start items-center hover:opacity-70",
-                    commentAmount === 0 && "invisible group-hover:visible",
-                  )}
-                  onClick={() => handleComment(memo)}
-                >
-                  <MessageCircleMoreIcon className="w-4 h-4 mx-auto text-gray-500 dark:text-gray-400" />
-                  {commentAmount > 0 && <span className="text-xs text-gray-500 dark:text-gray-400">{commentAmount}</span>}
-                </div>
-              )}
-              {isShowPinned && (
-                <Tooltip title={t("common.unpin")} placement="top">
-                  <span className="cursor-pointer">
-                    <BookmarkIcon className="w-4 h-auto text-amber-500" onClick={onPinIconClick} />
-                  </span>
-                </Tooltip>
-              )}
-              <MemoActionMenu className="-ml-1" memo={memo} readonly={readonly} onEdit={() => setShowEditor(true)} />
-            </div>
+            )}
           </div>
           {/* 展示备注内容：非置顶 或 置顶但未折叠 */}
           {shouldShowMemoContent && (
@@ -259,7 +275,7 @@ const MemoView: React.FC<Props> = (props: Props) => {
               {memo.location && <MemoLocationView location={memo.location} />}
               <MemoResourceListView resources={memo.resources} />
               <MemoRelationListView memo={memo} relations={referencedMemos} parentPage={parentPage} />
-              <MemoReactionistView memo={memo} reactions={memo.reactions} />
+              {!props.readonlyPreview && <MemoReactionistView memo={memo} reactions={memo.reactions} />}
             </>
           )}
         </>
