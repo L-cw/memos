@@ -65,7 +65,12 @@ const AddActionReferencePopover = ({ editorRef, onCreateRelations }: Props) => {
       <Tooltip title="引用 Action" placement="top">
         <span className="relative inline-flex w-9">
           <PopoverTrigger asChild>
-            <Button className="flex items-center justify-center" size="sm" variant="plain" aria-label="引用 Action">
+            <Button
+              className="flex items-center justify-center !text-primary hover:!bg-teal-50 hover:!text-primary-dark dark:hover:!bg-teal-950/30 dark:hover:!text-primary-lighter"
+              size="sm"
+              variant="plain"
+              aria-label="引用 Action"
+            >
               <ListChecksIcon className="mx-auto h-5 w-5" />
             </Button>
           </PopoverTrigger>

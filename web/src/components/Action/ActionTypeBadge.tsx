@@ -1,5 +1,5 @@
 import { Tooltip } from "@mui/joy";
-import { CircleCheckIcon, FolderKanbanIcon, TargetIcon } from "lucide-react";
+import { CalendarClockIcon, CircleCheckIcon, FolderKanbanIcon, TargetIcon } from "lucide-react";
 import { ActionType } from "@/types/action";
 import { cn } from "@/utils";
 
@@ -18,6 +18,11 @@ export const actionTypeMeta = {
     label: "Project",
     icon: FolderKanbanIcon,
     badgeClass: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
+  },
+  HABIT: {
+    label: "习惯",
+    icon: CalendarClockIcon,
+    badgeClass: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
   },
 } satisfies Record<ActionType, { label: string; icon: typeof CircleCheckIcon; badgeClass: string }>;
 

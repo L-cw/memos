@@ -1,52 +1,61 @@
-# Memos - Open Source, Self-hosted, Your Notes, Your Way
+# Memos
 
-<img align="right" height="96px" src="https://www.usememos.com/logo-rounded.png" alt="Memos" />
+Memos 是一个使用 Go、React 和 SQLite 构建的自托管记录工具。本项目在备忘录能力之外增加了 Action 工作区，用于管理待办、项目、目标和长期习惯。
 
-An open-source, self-hosted note-taking solution designed for seamless deployment and multi-platform access. Experience effortless plain text writing with pain-free, complemented by robust Markdown syntax support for enhanced formatting.
+## 主要功能
 
-<a href="https://www.usememos.com">Home Page</a> •
-<a href="https://www.usememos.com/blog">Blogs</a> •
-<a href="https://www.usememos.com/docs">Docs</a> •
-<a href="https://demo.usememos.com/">Live Demo</a>
+- 创建和管理 Memo，支持 Markdown、标签、附件、可见性及搜索。
+- 管理 Todo、Project、Goal 和 Habit，并查看不同状态与时间范围的 Action。
+- Goal 支持数值进度记录，Habit 支持按周期打卡、请假、备注和历史统计。
+- Memo 与 Action 可以相互关联，方便在记录和行动之间建立联系。
+- 数据由本地服务保存，适合个人部署和使用。
 
-<p>
-  <a href="https://hub.docker.com/r/neosmemo/memos"><img alt="Docker pull" src="https://img.shields.io/docker/pulls/neosmemo/memos.svg"/></a>
-  <a href="https://discord.gg/tfPJa4UmAv"><img alt="Discord" src="https://img.shields.io/badge/discord-chat-5865f2?logo=discord&logoColor=f5f5f5" /></a>
-</p>
+## 开发环境
 
-![demo](https://www.usememos.com/demo.png)
+- Go 1.23+
+- Node.js 20+
+- pnpm
 
-## Main Features
-
-- **Privacy First** 🏠: Take control of your data. All runtime data is securely stored in your local database.
-- **Create at Speed** ✍️: Save content as plain text for quick access, with Markdown support for fast formatting and easy sharing.
-- **Lightweight but Powerful** 🤲: Built with Go, React.js, and a compact architecture, our application delivers powerful performance in a lightweight package.
-- **Customizable** 🧩: Easily customize your server name, icon, description, system style, and execution scripts to make it uniquely yours.
-- **Open Source** 🦦: Memos embraces the future of open source, with all code available on GitHub for transparency and collaboration.
-- **Free to Use** 💸: Enjoy all features completely free, with no charges ever for any content.
-
-## Deploy with Docker in seconds
+首次启动前安装前端依赖：
 
 ```bash
-docker run -d --name memos -p 5230:5230 -v ~/.memos/:/var/opt/memos neosmemo/memos:stable
+cd web
+pnpm install
 ```
 
-> [!NOTE]
-> This command is only applicable for Unix/Linux systems. For Windows, please refer to the detailed [documentation](https://www.usememos.com/docs/install/container-install#docker-on-windows).
->
-> The `~/.memos/` directory will be used as the data directory on your local machine, while `/var/opt/memos` is the directory of the volume in Docker and should not be modified.
+## 启动后端
 
-Learn more about [other installation methods](https://www.usememos.com/docs/install).
+在项目根目录执行：
 
-## Contribution
+```bash
+mkdir -p "$PWD/.memos-dev"
+go run ./bin/memos --mode dev --port 10086 --data "$PWD/.memos-dev"
+```
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. We greatly appreciate any contributions you make. Thank you for being a part of our community! 🥰
+后端服务地址为 `http://localhost:10086`，本地数据保存在项目根目录的 `.memos-dev` 目录。`--data` 需要使用绝对路径，因为 `go run` 会从临时编译目录启动程序。
 
-## Star history
+## 启动前端
 
-[![Star History Chart](https://api.star-history.com/svg?repos=usememos/memos&type=Date)](https://star-history.com/#usememos/memos&Date)
+另开一个终端，在项目根目录执行：
 
-## Other Projects
+```bash
+cd web
+pnpm dev
+```
 
-- [**Slash**](https://github.com/yourselfhosted/slash): An open source, self-hosted bookmarks and link sharing platform. Save and share your links very easily.
-- [**Gomark**](https://github.com/usememos/gomark): A markdown parser written in Go for Memos. And its [WebAssembly version](https://github.com/usememos/gomark-wasm) is also available.
+前端页面地址为 `http://localhost:3001`，开发服务器会将 API 请求代理到本地后端。
+
+## 常用检查
+
+```bash
+cd web
+pnpm type-check
+pnpm lint
+pnpm build
+```
+
+后端测试：
+
+```bash
+go test ./...
+```

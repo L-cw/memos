@@ -1,10 +1,21 @@
 import dayjs from "dayjs";
-import { ActionItem, ActionMemoReference, CreateActionInput, UpdateActionInput } from "@/types/action";
+import {
+  ActionHabitRecord,
+  ActionItem,
+  ActionMemoReference,
+  ActionStatus,
+  CreateActionInput,
+  GoalRecordOperation,
+  UpdateActionInput,
+} from "@/types/action";
 import type {
   Action as ActionContract,
+  ActionStatusHistory as ActionStatusHistoryContract,
   GoalRecord as GoalRecordContract,
+  HabitRecord as HabitRecordContract,
   ListActionMemoRelationsResponse,
   ListActionsResponse,
+  ListHabitRecordsResponse,
   ListMemoActionRelationsResponse,
   MemoReference as MemoReferenceContract,
 } from "@/types/proto/api/v1/action_service";
@@ -14,9 +25,18 @@ type JsonGoalRecord = Omit<GoalRecordContract, "recordedTime" | "createTime"> & 
   createTime?: string;
 };
 
+type JsonHabitRecord = Omit<HabitRecordContract, "createTime" | "updateTime"> & {
+  createTime?: string;
+  updateTime?: string;
+};
+
+type JsonActionStatusHistory = Omit<ActionStatusHistoryContract, "createTime"> & {
+  createTime?: string;
+};
+
 type JsonAction = Omit<
   ActionContract,
-  "deadline" | "createTime" | "updateTime" | "completeTime" | "terminateTime" | "children" | "goalRecords"
+  "deadline" | "createTime" | "updateTime" | "completeTime" | "terminateTime" | "children" | "goalRecords" | "statusHistory"
 > & {
   deadline?: string;
   createTime?: string;
@@ -25,6 +45,7 @@ type JsonAction = Omit<
   terminateTime?: string;
   children?: JsonAction[];
   goalRecords?: JsonGoalRecord[];
+  statusHistory?: JsonActionStatusHistory[];
 };
 
 type JsonMemoReference = Omit<MemoReferenceContract, "updateTime"> & { updateTime?: string };
@@ -35,6 +56,10 @@ interface JsonListActionsResponse extends Omit<ListActionsResponse, "actions"> {
 
 interface JsonListActionMemoRelationsResponse extends Omit<ListActionMemoRelationsResponse, "memos"> {
   memos?: JsonMemoReference[];
+}
+
+interface JsonListHabitRecordsResponse extends Omit<ListHabitRecordsResponse, "habitRecords"> {
+  habitRecords?: JsonHabitRecord[];
 }
 
 interface JsonListMemoActionRelationsResponse extends Omit<ListMemoActionRelationsResponse, "actions"> {
@@ -102,10 +127,13 @@ const requestJson = async <T>(path: string, init: RequestInit = {}): Promise<T> 
 
 const resourcePath = (name: string) => name.split("/").map(encodeURIComponent).join("/");
 
+const toActionStatus = (value: ActionContract["status"]): ActionStatus =>
+  value === "IN_PROGRESS" || value === "DONE" || value === "TERMINATED" ? value : "TODO";
+
 const toActionItem = (action: JsonAction): ActionItem => ({
   uid: action.name.replace(/^actions\//, ""),
-  type: action.type === "GOAL" || action.type === "PROJECT" ? action.type : "TASK",
-  status: action.status === "IN_PROGRESS" || action.status === "DONE" || action.status === "TERMINATED" ? action.status : "TODO",
+  type: action.type === "GOAL" || action.type === "PROJECT" || action.type === "HABIT" ? action.type : "TASK",
+  status: toActionStatus(action.status),
   title: action.title,
   description: action.description,
   parentUid: action.parent?.replace(/^actions\//, "") || undefined,
@@ -118,9 +146,19 @@ const toActionItem = (action: JsonAction): ActionItem => ({
     uid: record.name.split("/").pop() || record.name,
     delta: record.delta,
     valueAfter: record.valueAfter,
+    operation: record.operation === "OVERWRITE" ? "OVERWRITE" : "DELTA",
     note: record.note,
     recordedAt: record.recordedTime ? dayjs(record.recordedTime).format("YYYY-MM-DD HH:mm") : "",
   })),
+  habit: action.habit
+    ? {
+        startDate: action.habit.startDate,
+        scheduleType:
+          action.habit.scheduleType === "INTERVAL_DAYS" || action.habit.scheduleType === "WEEKLY" ? action.habit.scheduleType : "DAILY",
+        intervalDays: action.habit.intervalDays || undefined,
+        weekdays: action.habit.weekdays || [],
+      }
+    : undefined,
   children: (action.children || []).map(toActionItem),
   relatedMemoNames: action.relatedMemos || [],
   createdAt: action.createTime ? dayjs(action.createTime).format("YYYY-MM-DD HH:mm") : "",
@@ -128,6 +166,13 @@ const toActionItem = (action: JsonAction): ActionItem => ({
   completedAt: action.completeTime ? dayjs(action.completeTime).format("YYYY-MM-DD HH:mm") : undefined,
   terminationReason: action.terminationReason || undefined,
   terminatedAt: action.terminateTime ? dayjs(action.terminateTime).format("YYYY-MM-DD HH:mm") : undefined,
+  statusHistory: (action.statusHistory || []).map((history) => ({
+    fromStatus: toActionStatus(history.fromStatus),
+    toStatus: toActionStatus(history.toStatus),
+    reason: history.reason,
+    effectiveDate: history.effectiveDate,
+    createdAt: history.createTime ? dayjs(history.createTime).format("YYYY-MM-DD HH:mm") : undefined,
+  })),
 });
 
 const toMemoReference = (memo: JsonMemo | JsonMemoReference): ActionMemoReference => {
@@ -144,6 +189,16 @@ const toMemoReference = (memo: JsonMemo | JsonMemoReference): ActionMemoReferenc
   };
 };
 
+const toHabitRecord = (record: JsonHabitRecord): ActionHabitRecord => ({
+  uid: record.name ? record.name.split("/").pop() : undefined,
+  actionUid: record.action.replace(/^actions\//, ""),
+  occurrenceDate: record.occurrenceDate,
+  status: record.status === "LEAVE" ? "LEAVE" : "CHECKED_IN",
+  note: record.note,
+  createdAt: record.createTime ? dayjs(record.createTime).format("YYYY-MM-DD HH:mm") : undefined,
+  updatedAt: record.updateTime ? dayjs(record.updateTime).format("YYYY-MM-DD HH:mm") : undefined,
+});
+
 const actionBody = (input: CreateActionInput) => ({
   type: input.type,
   title: input.title,
@@ -152,6 +207,16 @@ const actionBody = (input: CreateActionInput) => ({
   planDate: input.planDate || "",
   ...(input.deadline ? { deadline: dayjs(input.deadline).toISOString() } : {}),
   ...(input.type === "GOAL" ? { goal: { current: 0, target: input.goalTarget, unit: input.goalUnit } } : {}),
+  ...(input.type === "HABIT"
+    ? {
+        habit: {
+          startDate: input.habitStartDate,
+          scheduleType: input.habitScheduleType,
+          intervalDays: input.habitIntervalDays || 0,
+          weekdays: input.habitWeekdays || [],
+        },
+      }
+    : {}),
 });
 
 export const actionApi = {
@@ -191,7 +256,10 @@ export const actionApi = {
   },
 
   async reopenAction(uid: string): Promise<ActionItem> {
-    const response = await requestJson<JsonAction>(`/api/v1/actions/${encodeURIComponent(uid)}:reopen`, { method: "POST", body: "{}" });
+    const response = await requestJson<JsonAction>(`/api/v1/actions/${encodeURIComponent(uid)}:reopen`, {
+      method: "POST",
+      body: JSON.stringify({ effectiveDate: dayjs().format("YYYY-MM-DD") }),
+    });
     return toActionItem(response);
   },
 
@@ -203,10 +271,10 @@ export const actionApi = {
     return toActionItem(response);
   },
 
-  async terminateGoal(uid: string, reason: string): Promise<ActionItem> {
+  async terminateAction(uid: string, reason: string): Promise<ActionItem> {
     const response = await requestJson<JsonAction>(`/api/v1/actions/${encodeURIComponent(uid)}:terminate`, {
       method: "POST",
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, effectiveDate: dayjs().format("YYYY-MM-DD") }),
     });
     return toActionItem(response);
   },
@@ -219,11 +287,40 @@ export const actionApi = {
     return toActionItem(response);
   },
 
-  async createGoalRecord(uid: string, delta: number, note: string, recordedAt: string): Promise<void> {
+  async createGoalRecord(uid: string, operation: GoalRecordOperation, value: number, note: string, recordedAt: string): Promise<void> {
     await requestJson(`/api/v1/actions/${encodeURIComponent(uid)}/goalRecords`, {
       method: "POST",
-      body: JSON.stringify({ delta, note, recordedTime: dayjs(recordedAt).toISOString() }),
+      body: JSON.stringify({
+        operation,
+        ...(operation === "OVERWRITE" ? { overwriteValue: value } : { delta: value }),
+        note,
+        recordedTime: dayjs(recordedAt).toISOString(),
+      }),
     });
+  },
+
+  async listHabitRecords(occurrenceDate?: string, actionUid?: string): Promise<ActionHabitRecord[]> {
+    const query = new URLSearchParams();
+    if (occurrenceDate) query.set("occurrenceDate", occurrenceDate);
+    if (actionUid) query.set("action", `actions/${actionUid}`);
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
+    const response = await requestJson<JsonListHabitRecordsResponse>(`/api/v1/habitRecords${suffix}`);
+    return (response.habitRecords || []).map(toHabitRecord);
+  },
+
+  async batchUpdateHabitRecords(records: ActionHabitRecord[]): Promise<ActionHabitRecord[]> {
+    const response = await requestJson<JsonListHabitRecordsResponse>("/api/v1/habitRecords:batchUpdate", {
+      method: "POST",
+      body: JSON.stringify({
+        habitRecords: records.map((record) => ({
+          action: `actions/${record.actionUid}`,
+          occurrenceDate: record.occurrenceDate,
+          status: record.status,
+          note: record.note,
+        })),
+      }),
+    });
+    return (response.habitRecords || []).map(toHabitRecord);
   },
 
   async setActionMemoRelations(uid: string, memoNames: string[]): Promise<void> {

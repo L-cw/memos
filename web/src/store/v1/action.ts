@@ -1,7 +1,15 @@
 import dayjs from "dayjs";
 import { create } from "zustand";
 import { actionApi } from "@/api/action";
-import { ActionItem, ActionMemoReference, ActionView, CreateActionInput, UpdateActionInput } from "@/types/action";
+import {
+  ActionHabitRecord,
+  ActionItem,
+  ActionMemoReference,
+  ActionView,
+  CreateActionInput,
+  GoalRecordOperation,
+  UpdateActionInput,
+} from "@/types/action";
 
 export const flattenActions = (actions: ActionItem[]): ActionItem[] =>
   actions.flatMap((action) => [action, ...flattenActions(action.children)]);
@@ -24,7 +32,9 @@ export const sortActionChildren = (actions: ActionItem[]): ActionItem[] =>
     .map(({ action }) => action);
 
 export const projectProgress = (action: ActionItem) => {
-  const descendants = flattenActions(action.children);
+  const activeDescendants = (items: ActionItem[]): ActionItem[] =>
+    items.flatMap((item) => (item.status === "TERMINATED" ? [] : [item, ...activeDescendants(item.children)]));
+  const descendants = activeDescendants(action.children);
   return {
     done: descendants.filter((item) => item.status === "DONE").length,
     total: descendants.length,
@@ -50,6 +60,8 @@ export const filterActionsByView = (actions: ActionItem[], view: ActionView): Ac
       return actions.filter((action) => action.type === "PROJECT" && ["TODO", "IN_PROGRESS"].includes(action.status));
     case "goals":
       return actions.filter((action) => action.type === "GOAL" && ["TODO", "IN_PROGRESS"].includes(action.status));
+    case "habits":
+      return actions.filter((action) => action.type === "HABIT" && ["TODO", "IN_PROGRESS"].includes(action.status));
   }
 };
 
@@ -60,6 +72,7 @@ export const getActionViewCounts = (actions: ActionItem[]) => ({
   completed: filterActionsByView(actions, "completed").length,
   projects: filterActionsByView(actions, "projects").length,
   goals: filterActionsByView(actions, "goals").length,
+  habits: filterActionsByView(actions, "habits").length,
 });
 
 interface MutationResult {
@@ -70,6 +83,7 @@ interface MutationResult {
 interface ActionState {
   actions: ActionItem[];
   memos: ActionMemoReference[];
+  todayHabitRecords: ActionHabitRecord[];
   initialized: boolean;
   loading: boolean;
   error?: string;
@@ -79,6 +93,8 @@ interface ActionState {
   initialize: (force?: boolean) => Promise<void>;
   refreshActions: () => Promise<void>;
   refreshMemos: () => Promise<void>;
+  refreshTodayHabitRecords: () => Promise<void>;
+  batchUpdateHabitRecords: (records: ActionHabitRecord[]) => Promise<MutationResult>;
   selectAction: (uid?: string) => void;
   setCreateDialogOpen: (open: boolean) => void;
   openMemoPicker: (uid: string) => Promise<void>;
@@ -90,8 +106,8 @@ interface ActionState {
   reopenAction: (uid: string) => Promise<MutationResult>;
   moveAction: (uid: string, parentUid?: string) => Promise<MutationResult>;
   togglePin: (uid: string) => Promise<MutationResult>;
-  addGoalRecord: (uid: string, delta: number, note: string, recordedAt: string) => Promise<MutationResult>;
-  terminateGoal: (uid: string, reason: string) => Promise<MutationResult>;
+  addGoalRecord: (uid: string, operation: GoalRecordOperation, value: number, note: string, recordedAt: string) => Promise<MutationResult>;
+  terminateAction: (uid: string, reason: string) => Promise<MutationResult>;
   addChild: (parentUid: string, title: string, planDate?: string) => Promise<MutationResult>;
   setMemoRelations: (uid: string, memoNames: string[]) => Promise<MutationResult>;
   setActionRelationsForMemo: (memo: ActionMemoReference, actionUids: string[]) => Promise<MutationResult>;
@@ -114,6 +130,7 @@ export const useActionStore = create<ActionState>((set, get) => {
   return {
     actions: [],
     memos: [],
+    todayHabitRecords: [],
     initialized: false,
     loading: false,
     error: undefined,
@@ -126,8 +143,13 @@ export const useActionStore = create<ActionState>((set, get) => {
       if (state.loading || (state.initialized && !force)) return;
       set({ loading: true, error: undefined });
       try {
-        const [actions, memos] = await Promise.all([actionApi.listActions(), actionApi.listMemos()]);
-        set({ actions, memos, initialized: true, loading: false });
+        const today = dayjs().format("YYYY-MM-DD");
+        const [actions, memos, todayHabitRecords] = await Promise.all([
+          actionApi.listActions(),
+          actionApi.listMemos(),
+          actionApi.listHabitRecords(today),
+        ]);
+        set({ actions, memos, todayHabitRecords, initialized: true, loading: false });
       } catch (error) {
         set({ loading: false, initialized: true, error: getErrorMessage(error) });
       }
@@ -138,6 +160,26 @@ export const useActionStore = create<ActionState>((set, get) => {
     refreshMemos: async () => {
       const memos = await actionApi.listMemos();
       set({ memos, error: undefined });
+    },
+
+    refreshTodayHabitRecords: async () => {
+      try {
+        const todayHabitRecords = await actionApi.listHabitRecords(dayjs().format("YYYY-MM-DD"));
+        set({ todayHabitRecords, error: undefined });
+      } catch (error) {
+        set({ error: getErrorMessage(error) });
+      }
+    },
+
+    batchUpdateHabitRecords: async (records) => {
+      try {
+        await actionApi.batchUpdateHabitRecords(records);
+        const todayHabitRecords = await actionApi.listHabitRecords(dayjs().format("YYYY-MM-DD"));
+        set({ todayHabitRecords, error: undefined });
+        return { ok: true, message: "今日习惯已更新" };
+      } catch (error) {
+        return { ok: false, message: getErrorMessage(error) };
+      }
     },
 
     selectAction: (uid) => {
@@ -242,9 +284,9 @@ export const useActionStore = create<ActionState>((set, get) => {
       }
     },
 
-    addGoalRecord: async (uid, delta, note, recordedAt) => {
+    addGoalRecord: async (uid, operation, value, note, recordedAt) => {
       try {
-        await actionApi.createGoalRecord(uid, delta, note, recordedAt);
+        await actionApi.createGoalRecord(uid, operation, value, note, recordedAt);
         await reloadActions();
         const action = findAction(get().actions, uid);
         return { ok: true, message: action?.status === "DONE" ? "Goal 已达标并自动完成" : "Goal 进度已记录" };
@@ -253,11 +295,11 @@ export const useActionStore = create<ActionState>((set, get) => {
       }
     },
 
-    terminateGoal: async (uid, reason) => {
+    terminateAction: async (uid, reason) => {
       try {
-        await actionApi.terminateGoal(uid, reason);
+        await actionApi.terminateAction(uid, reason);
         await reloadActions();
-        return { ok: true, message: "Goal 已终止" };
+        return { ok: true, message: "Action 已终止" };
       } catch (error) {
         return { ok: false, message: getErrorMessage(error) };
       }

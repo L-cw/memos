@@ -51,6 +51,7 @@ paths:
             - TASK
             - GOAL
             - PROJECT
+            - HABIT
           default: ACTION_TYPE_UNSPECIFIED
         - name: statuses
           in: query
@@ -214,6 +215,49 @@ paths:
             $ref: '#/definitions/googleRpcStatus'
       tags:
         - AuthService
+  /api/v1/habitRecords:
+    get:
+      operationId: ActionService_ListHabitRecords
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1ListHabitRecordsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: occurrenceDate
+          in: query
+          required: false
+          type: string
+        - name: action
+          in: query
+          required: false
+          type: string
+      tags:
+        - ActionService
+  /api/v1/habitRecords:batchUpdate:
+    post:
+      operationId: ActionService_BatchUpdateHabitRecords
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1BatchUpdateHabitRecordsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googleRpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1BatchUpdateHabitRecordsRequest'
+      tags:
+        - ActionService
   /api/v1/identityProviders:
     get:
       summary: ListIdentityProviders lists identity providers.
@@ -883,6 +927,14 @@ paths:
                 items:
                   type: object
                   $ref: '#/definitions/v1GoalRecord'
+                readOnly: true
+              habit:
+                $ref: '#/definitions/v1HabitPayload'
+              statusHistory:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1ActionStatusHistory'
                 readOnly: true
       tags:
         - ActionService
@@ -1817,7 +1869,7 @@ paths:
         - ActionService
   /api/v1/{name}:terminate:
     post:
-      operationId: ActionService_TerminateGoal
+      operationId: ActionService_TerminateAction
       responses:
         "200":
           description: A successful response.
@@ -1837,7 +1889,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/ActionServiceTerminateGoalBody'
+            $ref: '#/definitions/ActionServiceTerminateActionBody'
       tags:
         - ActionService
   /api/v1/{parent}/goalRecords:
@@ -2363,6 +2415,9 @@ definitions:
         format: int64
   ActionServiceReopenActionBody:
     type: object
+    properties:
+      effectiveDate:
+        type: string
   ActionServiceSetActionMemoRelationsBody:
     type: object
     properties:
@@ -2377,10 +2432,12 @@ definitions:
         type: array
         items:
           type: string
-  ActionServiceTerminateGoalBody:
+  ActionServiceTerminateActionBody:
     type: object
     properties:
       reason:
+        type: string
+      effectiveDate:
         type: string
   ListNodeKind:
     type: string
@@ -3053,6 +3110,14 @@ definitions:
           type: object
           $ref: '#/definitions/v1GoalRecord'
         readOnly: true
+      habit:
+        $ref: '#/definitions/v1HabitPayload'
+      statusHistory:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1ActionStatusHistory'
+        readOnly: true
   v1ActionStatus:
     type: string
     enum:
@@ -3062,6 +3127,21 @@ definitions:
       - DONE
       - TERMINATED
     default: ACTION_STATUS_UNSPECIFIED
+  v1ActionStatusHistory:
+    type: object
+    properties:
+      fromStatus:
+        $ref: '#/definitions/v1ActionStatus'
+      toStatus:
+        $ref: '#/definitions/v1ActionStatus'
+      reason:
+        type: string
+      effectiveDate:
+        type: string
+      createTime:
+        type: string
+        format: date-time
+        readOnly: true
   v1ActionType:
     type: string
     enum:
@@ -3069,6 +3149,7 @@ definitions:
       - TASK
       - GOAL
       - PROJECT
+      - HABIT
     default: ACTION_TYPE_UNSPECIFIED
   v1Activity:
     type: object
@@ -3104,6 +3185,24 @@ definitions:
         type: string
       isRawText:
         type: boolean
+  v1BatchUpdateHabitRecordsRequest:
+    type: object
+    properties:
+      habitRecords:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1HabitRecord'
+    required:
+      - habitRecords
+  v1BatchUpdateHabitRecordsResponse:
+    type: object
+    properties:
+      habitRecords:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1HabitRecord'
   v1BlockquoteNode:
     type: object
     properties:
@@ -3203,6 +3302,18 @@ definitions:
         type: string
         format: date-time
         readOnly: true
+      operation:
+        $ref: '#/definitions/v1GoalRecordOperation'
+      overwriteValue:
+        type: number
+        format: double
+  v1GoalRecordOperation:
+    type: string
+    enum:
+      - GOAL_RECORD_OPERATION_UNSPECIFIED
+      - DELTA
+      - OVERWRITE
+    default: GOAL_RECORD_OPERATION_UNSPECIFIED
   v1HTMLElementNode:
     type: object
     properties:
@@ -3212,6 +3323,59 @@ definitions:
         type: object
         additionalProperties:
           type: string
+  v1HabitPayload:
+    type: object
+    properties:
+      startDate:
+        type: string
+      scheduleType:
+        $ref: '#/definitions/v1HabitScheduleType'
+      intervalDays:
+        type: integer
+        format: int32
+      weekdays:
+        type: array
+        items:
+          type: integer
+          format: int32
+  v1HabitRecord:
+    type: object
+    properties:
+      name:
+        type: string
+        readOnly: true
+      action:
+        type: string
+      occurrenceDate:
+        type: string
+      status:
+        $ref: '#/definitions/v1HabitRecordStatus'
+      note:
+        type: string
+      createTime:
+        type: string
+        format: date-time
+        readOnly: true
+      updateTime:
+        type: string
+        format: date-time
+        readOnly: true
+  v1HabitRecordStatus:
+    type: string
+    enum:
+      - HABIT_RECORD_STATUS_UNSPECIFIED
+      - UNCHECKED
+      - CHECKED_IN
+      - LEAVE
+    default: HABIT_RECORD_STATUS_UNSPECIFIED
+  v1HabitScheduleType:
+    type: string
+    enum:
+      - HABIT_SCHEDULE_TYPE_UNSPECIFIED
+      - DAILY
+      - INTERVAL_DAYS
+      - WEEKLY
+    default: HABIT_SCHEDULE_TYPE_UNSPECIFIED
   v1HeadingNode:
     type: object
     properties:
@@ -3337,6 +3501,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1GoalRecord'
+  v1ListHabitRecordsResponse:
+    type: object
+    properties:
+      habitRecords:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1HabitRecord'
   v1ListIdentityProvidersResponse:
     type: object
     properties:

@@ -55,7 +55,7 @@ service ActionService {
     };
   }
 
-  rpc TerminateGoal(TerminateGoalRequest) returns (Action) {
+  rpc TerminateAction(TerminateActionRequest) returns (Action) {
     option (google.api.http) = {
       post: "/api/v1/{name=actions/*}:terminate"
       body: "*"
@@ -78,6 +78,17 @@ service ActionService {
 
   rpc ListGoalRecords(ListGoalRecordsRequest) returns (ListGoalRecordsResponse) {
     option (google.api.http) = {get: "/api/v1/{parent=actions/*}/goalRecords"};
+  }
+
+  rpc BatchUpdateHabitRecords(BatchUpdateHabitRecordsRequest) returns (BatchUpdateHabitRecordsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/habitRecords:batchUpdate"
+      body: "*"
+    };
+  }
+
+  rpc ListHabitRecords(ListHabitRecordsRequest) returns (ListHabitRecordsResponse) {
+    option (google.api.http) = {get: "/api/v1/habitRecords"};
   }
 
   rpc SetActionMemoRelations(SetActionMemoRelationsRequest) returns (google.protobuf.Empty) {
@@ -108,6 +119,7 @@ enum ActionType {
   TASK = 1;
   GOAL = 2;
   PROJECT = 3;
+  HABIT = 4;
 }
 
 enum ActionStatus {
@@ -124,6 +136,51 @@ message GoalPayload {
   string unit = 3;
 }
 
+enum HabitScheduleType {
+  HABIT_SCHEDULE_TYPE_UNSPECIFIED = 0;
+  DAILY = 1;
+  INTERVAL_DAYS = 2;
+  WEEKLY = 3;
+}
+
+enum HabitRecordStatus {
+  HABIT_RECORD_STATUS_UNSPECIFIED = 0;
+  UNCHECKED = 1;
+  CHECKED_IN = 2;
+  LEAVE = 3;
+}
+
+message HabitPayload {
+  string start_date = 1;
+  HabitScheduleType schedule_type = 2;
+  int32 interval_days = 3;
+  repeated int32 weekdays = 4;
+}
+
+message HabitRecord {
+  string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string action = 2;
+  string occurrence_date = 3;
+  HabitRecordStatus status = 4;
+  string note = 5;
+  google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+message ActionStatusHistory {
+  ActionStatus from_status = 1;
+  ActionStatus to_status = 2;
+  string reason = 3;
+  string effective_date = 4;
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+enum GoalRecordOperation {
+  GOAL_RECORD_OPERATION_UNSPECIFIED = 0;
+  DELTA = 1;
+  OVERWRITE = 2;
+}
+
 message GoalRecord {
   string name = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
   string action = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -132,6 +189,8 @@ message GoalRecord {
   string note = 5;
   google.protobuf.Timestamp recorded_time = 6;
   google.protobuf.Timestamp create_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  GoalRecordOperation operation = 8;
+  optional double overwrite_value = 9 [(google.api.field_behavior) = INPUT_ONLY];
 }
 
 message MemoReference {
@@ -162,6 +221,8 @@ message Action {
   string termination_reason = 18 [(google.api.field_behavior) = OUTPUT_ONLY];
   google.protobuf.Timestamp terminate_time = 19 [(google.api.field_behavior) = OUTPUT_ONLY];
   repeated GoalRecord goal_records = 20 [(google.api.field_behavior) = OUTPUT_ONLY];
+  HabitPayload habit = 21;
+  repeated ActionStatusHistory status_history = 22 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message CreateActionRequest {
@@ -201,11 +262,13 @@ message CompleteActionRequest {
 
 message ReopenActionRequest {
   string name = 1;
+  string effective_date = 2;
 }
 
-message TerminateGoalRequest {
+message TerminateActionRequest {
   string name = 1;
   string reason = 2;
+  string effective_date = 3;
 }
 
 message MoveActionRequest {
@@ -225,6 +288,23 @@ message ListGoalRecordsRequest {
 
 message ListGoalRecordsResponse {
   repeated GoalRecord goal_records = 1;
+}
+
+message BatchUpdateHabitRecordsRequest {
+  repeated HabitRecord habit_records = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BatchUpdateHabitRecordsResponse {
+  repeated HabitRecord habit_records = 1;
+}
+
+message ListHabitRecordsRequest {
+  string occurrence_date = 1;
+  string action = 2;
+}
+
+message ListHabitRecordsResponse {
+  repeated HabitRecord habit_records = 1;
 }
 
 message SetActionMemoRelationsRequest {

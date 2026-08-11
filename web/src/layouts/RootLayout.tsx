@@ -42,7 +42,7 @@ const RootLayout = () => {
           <div
             className={cn(
               "group flex flex-col justify-start items-start fixed top-0 left-0 select-none border-r dark:border-zinc-800 h-full bg-zinc-50 dark:bg-zinc-800 dark:bg-opacity-40 transition-all hover:shadow-xl z-2",
-              collapsed ? "w-16 px-2" : "w-56 px-4",
+              collapsed ? "w-16 px-[0.3rem]" : "w-56 px-[0.3rem]",
             )}
           >
             <Navigation className="!h-auto" collapsed={collapsed} />

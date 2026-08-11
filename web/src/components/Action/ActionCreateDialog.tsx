@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
-import { CircleCheckIcon, FolderKanbanIcon, TargetIcon, XIcon } from "lucide-react";
+import { CalendarClockIcon, CircleCheckIcon, FolderKanbanIcon, TargetIcon, XIcon } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useActionStore } from "@/store/v1";
-import { ActionType } from "@/types/action";
+import { ActionType, HabitScheduleType } from "@/types/action";
 import { cn } from "@/utils";
 
 const inputClass =
@@ -13,6 +13,17 @@ const typeOptions: { value: ActionType; label: string; icon: typeof CircleCheckI
   { value: "TASK", label: "Todo", icon: CircleCheckIcon },
   { value: "GOAL", label: "Goal", icon: TargetIcon },
   { value: "PROJECT", label: "Project", icon: FolderKanbanIcon },
+  { value: "HABIT", label: "习惯", icon: CalendarClockIcon },
+];
+
+const weekdays = [
+  { value: 1, label: "一" },
+  { value: 2, label: "二" },
+  { value: 3, label: "三" },
+  { value: 4, label: "四" },
+  { value: 5, label: "五" },
+  { value: 6, label: "六" },
+  { value: 7, label: "日" },
 ];
 
 interface Props {
@@ -24,11 +35,13 @@ const ActionCreateDialog = ({ defaultType = "TASK" }: Props) => {
   const setOpen = useActionStore((state) => state.setCreateDialogOpen);
   const createAction = useActionStore((state) => state.createAction);
   const [type, setType] = useState<ActionType>("TASK");
+  const [habitScheduleType, setHabitScheduleType] = useState<HabitScheduleType>("DAILY");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       setType(defaultType);
+      setHabitScheduleType("DAILY");
       setSubmitting(false);
     }
   }, [defaultType, open]);
@@ -50,6 +63,11 @@ const ActionCreateDialog = ({ defaultType = "TASK" }: Props) => {
       deadline: String(data.get("deadline") || ""),
       goalTarget: type === "GOAL" ? Number(data.get("goalTarget")) : undefined,
       goalUnit: type === "GOAL" ? String(data.get("goalUnit") || "") : undefined,
+      habitStartDate: type === "HABIT" ? String(data.get("habitStartDate") || "") : undefined,
+      habitScheduleType: type === "HABIT" ? habitScheduleType : undefined,
+      habitIntervalDays: type === "HABIT" && habitScheduleType === "INTERVAL_DAYS" ? Number(data.get("habitIntervalDays")) : undefined,
+      habitWeekdays:
+        type === "HABIT" && habitScheduleType === "WEEKLY" ? data.getAll("habitWeekdays").map((value) => Number(value)) : undefined,
     });
     setSubmitting(false);
     result.ok ? toast.success(result.message) : toast.error(result.message);
@@ -85,7 +103,7 @@ const ActionCreateDialog = ({ defaultType = "TASK" }: Props) => {
         <div className="space-y-5 px-5 py-5">
           <fieldset>
             <legend className="mb-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">类型</legend>
-            <div className="grid grid-cols-3 gap-2 rounded-md bg-zinc-100 p-1 dark:bg-zinc-800">
+            <div className="grid grid-cols-2 gap-2 rounded-md bg-zinc-100 p-1 sm:grid-cols-4 dark:bg-zinc-800">
               {typeOptions.map((option) => {
                 const Icon = option.icon;
                 return (
@@ -124,16 +142,18 @@ const ActionCreateDialog = ({ defaultType = "TASK" }: Props) => {
             <textarea className={cn(inputClass, "min-h-24 resize-y")} name="description" placeholder="补充上下文（可选）" />
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">计划日期</span>
-              <input className={inputClass} name="planDate" type="date" defaultValue={dayjs().format("YYYY-MM-DD")} />
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">截止时间</span>
-              <input className={inputClass} name="deadline" type="datetime-local" />
-            </label>
-          </div>
+          {type !== "HABIT" && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">计划日期</span>
+                <input className={inputClass} name="planDate" type="date" defaultValue={dayjs().format("YYYY-MM-DD")} />
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">截止时间</span>
+                <input className={inputClass} name="deadline" type="datetime-local" />
+              </label>
+            </div>
+          )}
 
           {type === "GOAL" && (
             <div className="grid gap-4 border-t border-zinc-200 pt-5 sm:grid-cols-2 dark:border-zinc-800">
@@ -145,6 +165,59 @@ const ActionCreateDialog = ({ defaultType = "TASK" }: Props) => {
                 <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">单位</span>
                 <input className={inputClass} name="goalUnit" defaultValue="次" maxLength={12} required />
               </label>
+            </div>
+          )}
+
+          {type === "HABIT" && (
+            <div className="space-y-4 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">开始日期</span>
+                  <input className={inputClass} name="habitStartDate" type="date" defaultValue={dayjs().format("YYYY-MM-DD")} required />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">重复周期</span>
+                  <select
+                    className={inputClass}
+                    value={habitScheduleType}
+                    onChange={(event) => setHabitScheduleType(event.target.value as HabitScheduleType)}
+                  >
+                    <option value="DAILY">每天</option>
+                    <option value="INTERVAL_DAYS">每隔几天</option>
+                    <option value="WEEKLY">每周指定日期</option>
+                  </select>
+                </label>
+              </div>
+
+              {habitScheduleType === "INTERVAL_DAYS" && (
+                <label className="block max-w-48">
+                  <span className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">间隔天数</span>
+                  <input className={inputClass} name="habitIntervalDays" type="number" min="2" max="365" defaultValue="2" required />
+                </label>
+              )}
+
+              {habitScheduleType === "WEEKLY" && (
+                <fieldset>
+                  <legend className="mb-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">每周打卡日</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {weekdays.map((weekday) => (
+                      <label
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-zinc-200 text-sm text-zinc-600 has-checked:border-primary has-checked:bg-primary has-checked:text-white dark:border-zinc-700 dark:text-zinc-300"
+                        key={weekday.value}
+                      >
+                        <input
+                          className="sr-only"
+                          type="checkbox"
+                          name="habitWeekdays"
+                          value={weekday.value}
+                          defaultChecked={weekday.value <= 5}
+                        />
+                        {weekday.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
             </div>
           )}
         </div>

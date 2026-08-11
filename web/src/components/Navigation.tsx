@@ -174,6 +174,13 @@ const Navigation = (props: Props) => {
       icon: <TargetIcon className="w-6 h-auto opacity-70 shrink-0" />,
       count: actionCounts.goals,
     },
+    {
+      id: "header-actions-habits",
+      path: `${Routes.ACTIONS}/habits`,
+      title: t("action.views.habits"),
+      icon: <CalendarClockIcon className="w-6 h-auto opacity-70 shrink-0" />,
+      count: actionCounts.habits,
+    },
   ];
 
   const navLinks: NavLinkItem[] = user

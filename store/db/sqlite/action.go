@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/usememos/memos/store"
 )
 
-const actionSelectFields = "`id`, `uid`, `creator_id`, `parent_id`, `type`, `status`, `title`, `description`, `plan_date`, `deadline_ts`, `sort_order`, `goal_current`, `goal_target`, `goal_unit`, `pinned_ts`, `created_ts`, `updated_ts`, `completed_ts`, `termination_reason`, `terminated_ts`, `row_status`"
+const actionSelectFields = "`id`, `uid`, `creator_id`, `parent_id`, `type`, `status`, `title`, `description`, `plan_date`, `deadline_ts`, `sort_order`, `goal_current`, `goal_target`, `goal_unit`, `habit_start_date`, `habit_schedule_type`, `habit_interval_days`, `habit_weekdays`, `pinned_ts`, `created_ts`, `updated_ts`, `completed_ts`, `termination_reason`, `terminated_ts`, `row_status`"
 
 type actionRowScanner interface {
 	Scan(dest ...any) error
@@ -19,8 +20,8 @@ type actionRowScanner interface {
 func scanAction(scanner actionRowScanner) (*store.Action, error) {
 	action := &store.Action{}
 	var parentID sql.NullInt64
-	var planDate, goalUnit sql.NullString
-	var deadlineTs, pinnedTs, completedTs, terminatedTs sql.NullInt64
+	var planDate, goalUnit, habitStartDate, habitScheduleType, habitWeekdays sql.NullString
+	var deadlineTs, habitIntervalDays, pinnedTs, completedTs, terminatedTs sql.NullInt64
 	var goalCurrent, goalTarget sql.NullFloat64
 	if err := scanner.Scan(
 		&action.ID,
@@ -37,6 +38,10 @@ func scanAction(scanner actionRowScanner) (*store.Action, error) {
 		&goalCurrent,
 		&goalTarget,
 		&goalUnit,
+		&habitStartDate,
+		&habitScheduleType,
+		&habitIntervalDays,
+		&habitWeekdays,
 		&pinnedTs,
 		&action.CreatedTs,
 		&action.UpdatedTs,
@@ -65,6 +70,26 @@ func scanAction(scanner actionRowScanner) (*store.Action, error) {
 	}
 	if goalUnit.Valid {
 		action.GoalUnit = &goalUnit.String
+	}
+	if habitStartDate.Valid {
+		action.HabitStartDate = &habitStartDate.String
+	}
+	if habitScheduleType.Valid {
+		value := store.HabitScheduleType(habitScheduleType.String)
+		action.HabitScheduleType = &value
+	}
+	if habitIntervalDays.Valid {
+		value := int32(habitIntervalDays.Int64)
+		action.HabitIntervalDays = &value
+	}
+	if habitWeekdays.Valid && habitWeekdays.String != "" {
+		for _, item := range strings.Split(habitWeekdays.String, ",") {
+			value, err := strconv.ParseInt(item, 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("invalid habit weekday %q: %w", item, err)
+			}
+			action.HabitWeekdays = append(action.HabitWeekdays, int32(value))
+		}
 	}
 	if pinnedTs.Valid {
 		action.PinnedTs = &pinnedTs.Int64
@@ -106,12 +131,31 @@ func nullableFloat64(value *float64) any {
 	return *value
 }
 
+func nullableHabitSchedule(value *store.HabitScheduleType) any {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func nullableWeekdays(values []int32) any {
+	if len(values) == 0 {
+		return nil
+	}
+	encoded := make([]string, 0, len(values))
+	for _, value := range values {
+		encoded = append(encoded, strconv.FormatInt(int64(value), 10))
+	}
+	return strings.Join(encoded, ",")
+}
+
 func (d *DB) CreateAction(ctx context.Context, create *store.Action) (*store.Action, error) {
 	stmt := `
 		INSERT INTO action (
 			uid, creator_id, parent_id, type, status, title, description, plan_date, deadline_ts,
-			sort_order, goal_current, goal_target, goal_unit, row_status
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			sort_order, goal_current, goal_target, goal_unit, habit_start_date, habit_schedule_type,
+			habit_interval_days, habit_weekdays, row_status
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		RETURNING ` + actionSelectFields
 	return scanAction(d.db.QueryRowContext(ctx, stmt,
 		create.UID,
@@ -127,6 +171,10 @@ func (d *DB) CreateAction(ctx context.Context, create *store.Action) (*store.Act
 		nullableFloat64(create.GoalCurrent),
 		nullableFloat64(create.GoalTarget),
 		nullableString(create.GoalUnit),
+		nullableString(create.HabitStartDate),
+		nullableHabitSchedule(create.HabitScheduleType),
+		nullableInt32(create.HabitIntervalDays),
+		nullableWeekdays(create.HabitWeekdays),
 		create.RowStatus,
 	))
 }
@@ -246,6 +294,115 @@ func (d *DB) UpdateAction(ctx context.Context, update *store.UpdateAction) error
 	return nil
 }
 
+func transitionActionStatusTx(ctx context.Context, tx *sql.Tx, transition *store.TransitionActionStatus) (*store.ActionStatusHistory, error) {
+	var currentStatus store.ActionStatus
+	if err := tx.QueryRowContext(ctx, "SELECT `status` FROM `action` WHERE `id` = ? AND `creator_id` = ? AND `row_status` = 'NORMAL'", transition.ActionID, transition.CreatorID).Scan(&currentStatus); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.ErrActionNotFound
+		}
+		return nil, err
+	}
+	if currentStatus != transition.FromStatus {
+		return nil, store.ErrActionStatusConflict
+	}
+
+	now := transition.CreatedTs
+	if now == 0 {
+		now = time.Now().Unix()
+	}
+	set := []string{"`status` = ?", "`updated_ts` = ?"}
+	args := []any{transition.ToStatus, now}
+	if transition.ToStatus == store.ActionStatusTerminated {
+		set = append(set, "`termination_reason` = ?", "`terminated_ts` = ?")
+		args = append(args, transition.Reason, now)
+	} else if transition.FromStatus == store.ActionStatusTerminated {
+		set = append(set, "`termination_reason` = ''", "`terminated_ts` = NULL")
+	}
+	if transition.ToStatus == store.ActionStatusDone && transition.FromStatus != store.ActionStatusTerminated {
+		set = append(set, "`completed_ts` = ?")
+		args = append(args, now)
+	} else if transition.FromStatus == store.ActionStatusDone && transition.ToStatus != store.ActionStatusTerminated {
+		set = append(set, "`completed_ts` = NULL")
+	}
+	args = append(args, transition.ActionID, transition.CreatorID)
+	result, err := tx.ExecContext(ctx, "UPDATE `action` SET "+strings.Join(set, ", ")+" WHERE `id` = ? AND `creator_id` = ? AND `row_status` = 'NORMAL'", args...)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rows == 0 {
+		return nil, store.ErrActionNotFound
+	}
+
+	history := &store.ActionStatusHistory{
+		ActionID: transition.ActionID, CreatorID: transition.CreatorID,
+		FromStatus: transition.FromStatus, ToStatus: transition.ToStatus,
+		Reason: transition.Reason, EffectiveDate: transition.EffectiveDate,
+	}
+	if err := tx.QueryRowContext(ctx, `
+		INSERT INTO action_status_history (action_id, creator_id, from_status, to_status, reason, effective_date, created_ts)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		RETURNING id, created_ts`,
+		history.ActionID, history.CreatorID, history.FromStatus, history.ToStatus, history.Reason, history.EffectiveDate, now,
+	).Scan(&history.ID, &history.CreatedTs); err != nil {
+		return nil, err
+	}
+	return history, nil
+}
+
+func (d *DB) TransitionActionStatus(ctx context.Context, transition *store.TransitionActionStatus) (*store.ActionStatusHistory, error) {
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	history, err := transitionActionStatusTx(ctx, tx, transition)
+	if err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return history, nil
+}
+
+func (d *DB) ListActionStatusHistories(ctx context.Context, find *store.FindActionStatusHistory) ([]*store.ActionStatusHistory, error) {
+	where, args := []string{"1 = 1"}, []any{}
+	if find.ActionID != nil {
+		where, args = append(where, "`action_id` = ?"), append(args, *find.ActionID)
+	}
+	if find.CreatorID != nil {
+		where, args = append(where, "`creator_id` = ?"), append(args, *find.CreatorID)
+	}
+	rows, err := d.db.QueryContext(ctx, `
+		SELECT id, action_id, creator_id, from_status, to_status, reason, effective_date, created_ts
+		FROM action_status_history
+		WHERE `+strings.Join(where, " AND ")+`
+		ORDER BY effective_date ASC, created_ts ASC, id ASC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	histories := []*store.ActionStatusHistory{}
+	for rows.Next() {
+		history := &store.ActionStatusHistory{}
+		if err := rows.Scan(
+			&history.ID, &history.ActionID, &history.CreatorID, &history.FromStatus, &history.ToStatus,
+			&history.Reason, &history.EffectiveDate, &history.CreatedTs,
+		); err != nil {
+			return nil, err
+		}
+		histories = append(histories, history)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return histories, nil
+}
+
 func (d *DB) MoveAction(ctx context.Context, move *store.MoveAction) error {
 	result, err := d.db.ExecContext(ctx, "UPDATE `action` SET `parent_id` = ?, `sort_order` = ?, `updated_ts` = ? WHERE `id` = ? AND `creator_id` = ? AND `row_status` = 'NORMAL'", nullableInt32(move.ParentID), move.SortOrder, time.Now().Unix(), move.ID, move.CreatorID)
 	if err != nil {
@@ -337,23 +494,40 @@ func (d *DB) CreateActionGoalRecord(ctx context.Context, create *store.ActionGoa
 	if actionType != store.ActionTypeGoal || (actionStatus != store.ActionStatusTodo && actionStatus != store.ActionStatusInProgress) {
 		return nil, nil, store.ErrGoalProgressUnavailable
 	}
+	if create.Operation == "" {
+		create.Operation = store.GoalRecordOperationDelta
+	}
 	valueAfter := current + create.Delta
+	if create.Operation == store.GoalRecordOperationOverwrite {
+		if create.OverwriteValue == nil {
+			return nil, nil, store.ErrGoalOverwriteValueMissing
+		}
+		valueAfter = *create.OverwriteValue
+		create.Delta = valueAfter - current
+	}
 	if valueAfter < 0 {
 		return nil, nil, store.ErrGoalProgressNegative
 	}
 	create.ValueAfter = valueAfter
-	if err := tx.QueryRowContext(ctx, `INSERT INTO action_goal_record (uid, action_id, creator_id, delta, value_after, note, recorded_ts) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_ts`, create.UID, create.ActionID, create.CreatorID, create.Delta, create.ValueAfter, create.Note, create.RecordedTs).Scan(&create.ID, &create.CreatedTs); err != nil {
+	if err := tx.QueryRowContext(ctx, `INSERT INTO action_goal_record (uid, action_id, creator_id, delta, value_after, operation, note, recorded_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_ts`, create.UID, create.ActionID, create.CreatorID, create.Delta, create.ValueAfter, create.Operation, create.Note, create.RecordedTs).Scan(&create.ID, &create.CreatedTs); err != nil {
 		return nil, nil, err
 	}
 	now := time.Now().Unix()
 	nextStatus := store.ActionStatusInProgress
-	var completed any
 	if valueAfter >= target {
 		nextStatus = store.ActionStatusDone
-		completed = now
 	}
-	if _, err := tx.ExecContext(ctx, "UPDATE `action` SET `goal_current` = ?, `status` = ?, `completed_ts` = ?, `updated_ts` = ? WHERE `id` = ? AND `creator_id` = ?", valueAfter, nextStatus, completed, now, create.ActionID, create.CreatorID); err != nil {
+	if _, err := tx.ExecContext(ctx, "UPDATE `action` SET `goal_current` = ?, `updated_ts` = ? WHERE `id` = ? AND `creator_id` = ?", valueAfter, now, create.ActionID, create.CreatorID); err != nil {
 		return nil, nil, err
+	}
+	if nextStatus != actionStatus {
+		if _, err := transitionActionStatusTx(ctx, tx, &store.TransitionActionStatus{
+			ActionID: create.ActionID, CreatorID: create.CreatorID,
+			FromStatus: actionStatus, ToStatus: nextStatus,
+			EffectiveDate: time.Unix(now, 0).Format("2006-01-02"), CreatedTs: now,
+		}); err != nil {
+			return nil, nil, err
+		}
 	}
 	action, err := scanAction(tx.QueryRowContext(ctx, "SELECT "+actionSelectFields+" FROM `action` WHERE `id` = ?", create.ActionID))
 	if err != nil {
@@ -373,7 +547,7 @@ func (d *DB) ListActionGoalRecords(ctx context.Context, find *store.FindActionGo
 	if find.CreatorID != nil {
 		where, args = append(where, "`creator_id` = ?"), append(args, *find.CreatorID)
 	}
-	rows, err := d.db.QueryContext(ctx, "SELECT `id`, `uid`, `action_id`, `creator_id`, `delta`, `value_after`, `note`, `recorded_ts`, `created_ts` FROM `action_goal_record` WHERE "+strings.Join(where, " AND ")+" ORDER BY `recorded_ts` DESC, `created_ts` DESC", args...)
+	rows, err := d.db.QueryContext(ctx, "SELECT `id`, `uid`, `action_id`, `creator_id`, `delta`, `value_after`, `operation`, `note`, `recorded_ts`, `created_ts` FROM `action_goal_record` WHERE "+strings.Join(where, " AND ")+" ORDER BY `recorded_ts` DESC, `created_ts` DESC", args...)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +555,95 @@ func (d *DB) ListActionGoalRecords(ctx context.Context, find *store.FindActionGo
 	records := []*store.ActionGoalRecord{}
 	for rows.Next() {
 		record := &store.ActionGoalRecord{}
-		if err := rows.Scan(&record.ID, &record.UID, &record.ActionID, &record.CreatorID, &record.Delta, &record.ValueAfter, &record.Note, &record.RecordedTs, &record.CreatedTs); err != nil {
+		if err := rows.Scan(&record.ID, &record.UID, &record.ActionID, &record.CreatorID, &record.Delta, &record.ValueAfter, &record.Operation, &record.Note, &record.RecordedTs, &record.CreatedTs); err != nil {
+			return nil, err
+		}
+		records = append(records, record)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return records, nil
+}
+
+func (d *DB) BatchUpdateActionHabitRecords(ctx context.Context, records []*store.ActionHabitRecord) ([]*store.ActionHabitRecord, error) {
+	if len(records) == 0 {
+		return []*store.ActionHabitRecord{}, nil
+	}
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	for _, record := range records {
+		var actionType store.ActionType
+		var actionStatus store.ActionStatus
+		if err := tx.QueryRowContext(ctx, "SELECT `type`, `status` FROM `action` WHERE `id` = ? AND `creator_id` = ? AND `row_status` = 'NORMAL'", record.ActionID, record.CreatorID).Scan(&actionType, &actionStatus); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, store.ErrActionNotFound
+			}
+			return nil, err
+		}
+		if actionType != store.ActionTypeHabit {
+			return nil, store.ErrHabitRecordUnavailable
+		}
+		if record.Status == store.HabitRecordStatusUnchecked {
+			if _, err := tx.ExecContext(ctx, "DELETE FROM `action_habit_record` WHERE `action_id` = ? AND `creator_id` = ? AND `occurrence_date` = ?", record.ActionID, record.CreatorID, record.OccurrenceDate); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		if record.Status != store.HabitRecordStatusCheckedIn && record.Status != store.HabitRecordStatusLeave {
+			return nil, store.ErrHabitRecordUnavailable
+		}
+		now := time.Now().Unix()
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO action_habit_record (uid, action_id, creator_id, occurrence_date, status, note, created_ts, updated_ts)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT(action_id, occurrence_date) DO UPDATE SET status = excluded.status, note = excluded.note, updated_ts = excluded.updated_ts`,
+			record.UID, record.ActionID, record.CreatorID, record.OccurrenceDate, record.Status, record.Note, now, now); err != nil {
+			return nil, err
+		}
+		if actionStatus == store.ActionStatusTodo {
+			if _, err := transitionActionStatusTx(ctx, tx, &store.TransitionActionStatus{
+				ActionID: record.ActionID, CreatorID: record.CreatorID,
+				FromStatus: actionStatus, ToStatus: store.ActionStatusInProgress,
+				EffectiveDate: record.OccurrenceDate, CreatedTs: now,
+			}); err != nil {
+				return nil, err
+			}
+		} else if _, err := tx.ExecContext(ctx, "UPDATE `action` SET `updated_ts` = ? WHERE `id` = ? AND `creator_id` = ?", now, record.ActionID, record.CreatorID); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	creatorID := records[0].CreatorID
+	return d.ListActionHabitRecords(ctx, &store.FindActionHabitRecord{CreatorID: &creatorID})
+}
+
+func (d *DB) ListActionHabitRecords(ctx context.Context, find *store.FindActionHabitRecord) ([]*store.ActionHabitRecord, error) {
+	where, args := []string{"1 = 1"}, []any{}
+	if find.ActionID != nil {
+		where, args = append(where, "`action_id` = ?"), append(args, *find.ActionID)
+	}
+	if find.CreatorID != nil {
+		where, args = append(where, "`creator_id` = ?"), append(args, *find.CreatorID)
+	}
+	if find.OccurrenceDate != nil {
+		where, args = append(where, "`occurrence_date` = ?"), append(args, *find.OccurrenceDate)
+	}
+	rows, err := d.db.QueryContext(ctx, "SELECT `id`, `uid`, `action_id`, `creator_id`, `occurrence_date`, `status`, `note`, `created_ts`, `updated_ts` FROM `action_habit_record` WHERE "+strings.Join(where, " AND ")+" ORDER BY `occurrence_date` DESC, `created_ts` DESC", args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	records := []*store.ActionHabitRecord{}
+	for rows.Next() {
+		record := &store.ActionHabitRecord{}
+		if err := rows.Scan(&record.ID, &record.UID, &record.ActionID, &record.CreatorID, &record.OccurrenceDate, &record.Status, &record.Note, &record.CreatedTs, &record.UpdatedTs); err != nil {
 			return nil, err
 		}
 		records = append(records, record)

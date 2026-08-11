@@ -148,7 +148,7 @@ CREATE TABLE action (
   uid TEXT NOT NULL UNIQUE,
   creator_id INTEGER NOT NULL,
   parent_id INTEGER,
-  type TEXT NOT NULL CHECK (type IN ('TASK', 'GOAL', 'PROJECT')),
+  type TEXT NOT NULL CHECK (type IN ('TASK', 'GOAL', 'PROJECT', 'HABIT')),
   status TEXT NOT NULL CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE', 'TERMINATED')) DEFAULT 'TODO',
   title TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
@@ -158,6 +158,10 @@ CREATE TABLE action (
   goal_current REAL,
   goal_target REAL,
   goal_unit TEXT,
+  habit_start_date TEXT,
+  habit_schedule_type TEXT CHECK (habit_schedule_type IN ('DAILY', 'INTERVAL_DAYS', 'WEEKLY')),
+  habit_interval_days INTEGER,
+  habit_weekdays TEXT,
   pinned_ts BIGINT,
   created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
   updated_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
@@ -182,6 +186,7 @@ CREATE TABLE action_goal_record (
   creator_id INTEGER NOT NULL,
   delta REAL NOT NULL,
   value_after REAL NOT NULL,
+  operation TEXT NOT NULL DEFAULT 'DELTA' CHECK (operation IN ('DELTA', 'OVERWRITE')),
   note TEXT NOT NULL DEFAULT '',
   recorded_ts BIGINT NOT NULL,
   created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -189,6 +194,38 @@ CREATE TABLE action_goal_record (
 
 CREATE INDEX idx_action_goal_record_action_id ON action_goal_record (action_id);
 CREATE INDEX idx_action_goal_record_creator_id ON action_goal_record (creator_id);
+
+-- action_habit_record
+CREATE TABLE action_habit_record (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  uid TEXT NOT NULL UNIQUE,
+  action_id INTEGER NOT NULL,
+  creator_id INTEGER NOT NULL,
+  occurrence_date TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('CHECKED_IN', 'LEAVE')),
+  note TEXT NOT NULL DEFAULT '',
+  created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
+  updated_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
+  UNIQUE (action_id, occurrence_date)
+);
+
+CREATE INDEX idx_action_habit_record_creator_date ON action_habit_record (creator_id, occurrence_date);
+CREATE INDEX idx_action_habit_record_action_date ON action_habit_record (action_id, occurrence_date);
+
+-- action_status_history
+CREATE TABLE action_status_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action_id INTEGER NOT NULL,
+  creator_id INTEGER NOT NULL,
+  from_status TEXT NOT NULL CHECK (from_status IN ('TODO', 'IN_PROGRESS', 'DONE', 'TERMINATED')),
+  to_status TEXT NOT NULL CHECK (to_status IN ('TODO', 'IN_PROGRESS', 'DONE', 'TERMINATED')),
+  reason TEXT NOT NULL DEFAULT '',
+  effective_date TEXT NOT NULL,
+  created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+CREATE INDEX idx_action_status_history_action_created ON action_status_history (action_id, created_ts);
+CREATE INDEX idx_action_status_history_creator_created ON action_status_history (creator_id, created_ts);
 
 -- memo_action_relation
 CREATE TABLE memo_action_relation (

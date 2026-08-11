@@ -503,7 +503,7 @@ const MemoEditor = (props: Props) => {
             <TagSelector editorRef={editorRef} />
             <MarkdownMenu editorRef={editorRef} />
             <UploadResourceButton />
-            <AddMemoRelationPopover editorRef={editorRef} />
+            {memoName && <AddMemoRelationPopover editorRef={editorRef} />}
             <AddActionReferencePopover editorRef={editorRef} onCreateRelations={handleCreateActionRelations} />
             {workspaceMemoRelatedSetting.enableLocation && (
               <LocationSelector
@@ -546,7 +546,11 @@ const MemoEditor = (props: Props) => {
                 {t("common.cancel")}
               </Button>
             )}
-            <Button color="primary" disabled={!allowSave || state.isRequesting} onClick={handleSaveBtnClick}>
+            <Button
+              className="!bg-primary !text-white hover:!bg-primary-dark disabled:!bg-primary disabled:!text-white disabled:!opacity-50"
+              disabled={!allowSave || state.isRequesting}
+              onClick={handleSaveBtnClick}
+            >
               {t("editor.save")}
               {!state.isRequesting ? <SendIcon className="w-4 h-auto ml-1" /> : <LoaderIcon className="w-4 h-auto ml-1 animate-spin" />}
             </Button>

@@ -29,12 +29,7 @@ const TagSelector = (props: Props) => {
     const current = editorRef.current;
     if (current === null) return;
 
-    const line = current.getLine(current.getCursorLineNumber());
-    const lastCharOfLine = line.slice(-1);
-
-    if (lastCharOfLine !== " " && lastCharOfLine !== "　" && line !== "") {
-      current.insertText("\n");
-    }
+    current.setCursorPosition(0);
     current.insertText(`#${tag} `);
   };
 

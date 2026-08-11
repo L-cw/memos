@@ -14,6 +14,7 @@ import {
   PinIcon,
   PinOffIcon,
   PlusIcon,
+  CalendarClockIcon,
   TargetIcon,
   TriangleAlertIcon,
 } from "lucide-react";
@@ -24,10 +25,12 @@ import ActionCreateDialog from "@/components/Action/ActionCreateDialog";
 import ActionDetailDrawer from "@/components/Action/ActionDetailDrawer";
 import ActionMemoPickerDialog from "@/components/Action/ActionMemoPickerDialog";
 import ActionTypeBadge from "@/components/Action/ActionTypeBadge";
+import HabitCheckInDialog from "@/components/Action/HabitCheckInDialog";
 import MobileHeader from "@/components/MobileHeader";
 import { filterActionsByView, flattenActions, getActionViewCounts, projectProgress, sortActionChildren, useActionStore } from "@/store/v1";
 import { ACTION_VIEWS, ActionItem, ActionView, isActionView } from "@/types/action";
 import { cn } from "@/utils";
+import { habitScheduleLabel } from "@/utils/habit";
 import { Translations, useTranslate } from "@/utils/i18n";
 
 const actionViewLabelKeys: Record<ActionView, Translations> = {
@@ -37,6 +40,7 @@ const actionViewLabelKeys: Record<ActionView, Translations> = {
   completed: "action.views.completed",
   projects: "action.views.projects",
   goals: "action.views.goals",
+  habits: "action.views.habits",
 };
 
 const viewTitle: Record<ActionView, { title: string; description: string }> = {
@@ -46,6 +50,7 @@ const viewTitle: Record<ActionView, { title: string; description: string }> = {
   completed: { title: "Completed", description: "已完成和已终止的 Action" },
   projects: { title: "Projects", description: "进行中的项目与拆解进度" },
   goals: { title: "Goals", description: "进行中的数值目标" },
+  habits: { title: "习惯", description: "长期坚持与打卡记录" },
 };
 
 const formatDate = (value?: string) => {
@@ -64,6 +69,7 @@ const getActionSummary = (action: ActionItem) => {
     const progress = projectProgress(action);
     return `${progress.done}/${progress.total} 子项`;
   }
+  if (action.type === "HABIT") return habitScheduleLabel(action);
   if (action.status === "DONE") return "已完成";
   if (action.status === "TERMINATED") return "已终止";
   return action.status === "IN_PROGRESS" ? "进行中" : "待开始";
@@ -181,10 +187,17 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
             )}
           </div>
           <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
-            <span className="inline-flex items-center gap-1">
-              <CalendarDaysIcon className="h-3.5 w-3.5" />
-              {formatDate(action.planDate)}
-            </span>
+            {action.type === "HABIT" ? (
+              <span className="inline-flex items-center gap-1">
+                <CalendarClockIcon className="h-3.5 w-3.5" />
+                {habitScheduleLabel(action)}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <CalendarDaysIcon className="h-3.5 w-3.5" />
+                {formatDate(action.planDate)}
+              </span>
+            )}
             {action.deadline && (
               <span className="inline-flex items-center gap-1">
                 <FlagIcon className="h-3.5 w-3.5" />
@@ -296,6 +309,7 @@ const Actions = () => {
   const initialize = useActionStore((state) => state.initialize);
   const setCreateDialogOpen = useActionStore((state) => state.setCreateDialogOpen);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [habitCheckInOpen, setHabitCheckInOpen] = useState(false);
   const view: ActionView = isActionView(params.view) ? params.view : "today";
   const filteredActions = useMemo(() => filterActionsByView(actions, view), [actions, view]);
   const pinnedActions = useMemo(
@@ -318,7 +332,7 @@ const Actions = () => {
     { done: 0, total: 0 },
   );
   const currentView = viewTitle[view];
-  const defaultCreateType = view === "projects" ? "PROJECT" : view === "goals" ? "GOAL" : "TASK";
+  const defaultCreateType = view === "projects" ? "PROJECT" : view === "goals" ? "GOAL" : view === "habits" ? "HABIT" : "TASK";
 
   useEffect(() => {
     void initialize();
@@ -444,20 +458,39 @@ const Actions = () => {
         </section>
       </div>
 
-      <Tooltip title="新建 Action" placement="left">
-        <button
-          className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
-          type="button"
-          aria-label="新建 Action"
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-        </button>
-      </Tooltip>
+      <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-20 flex flex-col gap-2 sm:bottom-6 sm:right-6">
+        <Tooltip title="今日打卡" placement="left">
+          <button
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-colors hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:h-14 sm:w-14"
+            type="button"
+            aria-label="今日打卡"
+            onClick={(event) => {
+              event.currentTarget.blur();
+              setHabitCheckInOpen(true);
+            }}
+          >
+            <CalendarClockIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+        </Tooltip>
+        <Tooltip title="新建 Action" placement="left">
+          <button
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-14 sm:w-14"
+            type="button"
+            aria-label="新建 Action"
+            onClick={(event) => {
+              event.currentTarget.blur();
+              setCreateDialogOpen(true);
+            }}
+          >
+            <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+        </Tooltip>
+      </div>
 
       <ActionCreateDialog defaultType={defaultCreateType} />
       <ActionDetailDrawer />
       <ActionMemoPickerDialog />
+      <HabitCheckInDialog open={habitCheckInOpen} onClose={() => setHabitCheckInOpen(false)} />
     </section>
   );
 };

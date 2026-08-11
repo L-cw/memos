@@ -27,10 +27,12 @@ const (
 	ActionService_DeleteAction_FullMethodName            = "/memos.api.v1.ActionService/DeleteAction"
 	ActionService_CompleteAction_FullMethodName          = "/memos.api.v1.ActionService/CompleteAction"
 	ActionService_ReopenAction_FullMethodName            = "/memos.api.v1.ActionService/ReopenAction"
-	ActionService_TerminateGoal_FullMethodName           = "/memos.api.v1.ActionService/TerminateGoal"
+	ActionService_TerminateAction_FullMethodName         = "/memos.api.v1.ActionService/TerminateAction"
 	ActionService_MoveAction_FullMethodName              = "/memos.api.v1.ActionService/MoveAction"
 	ActionService_CreateGoalRecord_FullMethodName        = "/memos.api.v1.ActionService/CreateGoalRecord"
 	ActionService_ListGoalRecords_FullMethodName         = "/memos.api.v1.ActionService/ListGoalRecords"
+	ActionService_BatchUpdateHabitRecords_FullMethodName = "/memos.api.v1.ActionService/BatchUpdateHabitRecords"
+	ActionService_ListHabitRecords_FullMethodName        = "/memos.api.v1.ActionService/ListHabitRecords"
 	ActionService_SetActionMemoRelations_FullMethodName  = "/memos.api.v1.ActionService/SetActionMemoRelations"
 	ActionService_ListActionMemoRelations_FullMethodName = "/memos.api.v1.ActionService/ListActionMemoRelations"
 	ActionService_SetMemoActionRelations_FullMethodName  = "/memos.api.v1.ActionService/SetMemoActionRelations"
@@ -48,10 +50,12 @@ type ActionServiceClient interface {
 	DeleteAction(ctx context.Context, in *DeleteActionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CompleteAction(ctx context.Context, in *CompleteActionRequest, opts ...grpc.CallOption) (*Action, error)
 	ReopenAction(ctx context.Context, in *ReopenActionRequest, opts ...grpc.CallOption) (*Action, error)
-	TerminateGoal(ctx context.Context, in *TerminateGoalRequest, opts ...grpc.CallOption) (*Action, error)
+	TerminateAction(ctx context.Context, in *TerminateActionRequest, opts ...grpc.CallOption) (*Action, error)
 	MoveAction(ctx context.Context, in *MoveActionRequest, opts ...grpc.CallOption) (*Action, error)
 	CreateGoalRecord(ctx context.Context, in *CreateGoalRecordRequest, opts ...grpc.CallOption) (*GoalRecord, error)
 	ListGoalRecords(ctx context.Context, in *ListGoalRecordsRequest, opts ...grpc.CallOption) (*ListGoalRecordsResponse, error)
+	BatchUpdateHabitRecords(ctx context.Context, in *BatchUpdateHabitRecordsRequest, opts ...grpc.CallOption) (*BatchUpdateHabitRecordsResponse, error)
+	ListHabitRecords(ctx context.Context, in *ListHabitRecordsRequest, opts ...grpc.CallOption) (*ListHabitRecordsResponse, error)
 	SetActionMemoRelations(ctx context.Context, in *SetActionMemoRelationsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListActionMemoRelations(ctx context.Context, in *ListActionMemoRelationsRequest, opts ...grpc.CallOption) (*ListActionMemoRelationsResponse, error)
 	SetMemoActionRelations(ctx context.Context, in *SetMemoActionRelationsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -136,10 +140,10 @@ func (c *actionServiceClient) ReopenAction(ctx context.Context, in *ReopenAction
 	return out, nil
 }
 
-func (c *actionServiceClient) TerminateGoal(ctx context.Context, in *TerminateGoalRequest, opts ...grpc.CallOption) (*Action, error) {
+func (c *actionServiceClient) TerminateAction(ctx context.Context, in *TerminateActionRequest, opts ...grpc.CallOption) (*Action, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Action)
-	err := c.cc.Invoke(ctx, ActionService_TerminateGoal_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ActionService_TerminateAction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +174,26 @@ func (c *actionServiceClient) ListGoalRecords(ctx context.Context, in *ListGoalR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListGoalRecordsResponse)
 	err := c.cc.Invoke(ctx, ActionService_ListGoalRecords_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actionServiceClient) BatchUpdateHabitRecords(ctx context.Context, in *BatchUpdateHabitRecordsRequest, opts ...grpc.CallOption) (*BatchUpdateHabitRecordsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BatchUpdateHabitRecordsResponse)
+	err := c.cc.Invoke(ctx, ActionService_BatchUpdateHabitRecords_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *actionServiceClient) ListHabitRecords(ctx context.Context, in *ListHabitRecordsRequest, opts ...grpc.CallOption) (*ListHabitRecordsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListHabitRecordsResponse)
+	err := c.cc.Invoke(ctx, ActionService_ListHabitRecords_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,10 +251,12 @@ type ActionServiceServer interface {
 	DeleteAction(context.Context, *DeleteActionRequest) (*emptypb.Empty, error)
 	CompleteAction(context.Context, *CompleteActionRequest) (*Action, error)
 	ReopenAction(context.Context, *ReopenActionRequest) (*Action, error)
-	TerminateGoal(context.Context, *TerminateGoalRequest) (*Action, error)
+	TerminateAction(context.Context, *TerminateActionRequest) (*Action, error)
 	MoveAction(context.Context, *MoveActionRequest) (*Action, error)
 	CreateGoalRecord(context.Context, *CreateGoalRecordRequest) (*GoalRecord, error)
 	ListGoalRecords(context.Context, *ListGoalRecordsRequest) (*ListGoalRecordsResponse, error)
+	BatchUpdateHabitRecords(context.Context, *BatchUpdateHabitRecordsRequest) (*BatchUpdateHabitRecordsResponse, error)
+	ListHabitRecords(context.Context, *ListHabitRecordsRequest) (*ListHabitRecordsResponse, error)
 	SetActionMemoRelations(context.Context, *SetActionMemoRelationsRequest) (*emptypb.Empty, error)
 	ListActionMemoRelations(context.Context, *ListActionMemoRelationsRequest) (*ListActionMemoRelationsResponse, error)
 	SetMemoActionRelations(context.Context, *SetMemoActionRelationsRequest) (*emptypb.Empty, error)
@@ -266,8 +292,8 @@ func (UnimplementedActionServiceServer) CompleteAction(context.Context, *Complet
 func (UnimplementedActionServiceServer) ReopenAction(context.Context, *ReopenActionRequest) (*Action, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReopenAction not implemented")
 }
-func (UnimplementedActionServiceServer) TerminateGoal(context.Context, *TerminateGoalRequest) (*Action, error) {
-	return nil, status.Error(codes.Unimplemented, "method TerminateGoal not implemented")
+func (UnimplementedActionServiceServer) TerminateAction(context.Context, *TerminateActionRequest) (*Action, error) {
+	return nil, status.Error(codes.Unimplemented, "method TerminateAction not implemented")
 }
 func (UnimplementedActionServiceServer) MoveAction(context.Context, *MoveActionRequest) (*Action, error) {
 	return nil, status.Error(codes.Unimplemented, "method MoveAction not implemented")
@@ -277,6 +303,12 @@ func (UnimplementedActionServiceServer) CreateGoalRecord(context.Context, *Creat
 }
 func (UnimplementedActionServiceServer) ListGoalRecords(context.Context, *ListGoalRecordsRequest) (*ListGoalRecordsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListGoalRecords not implemented")
+}
+func (UnimplementedActionServiceServer) BatchUpdateHabitRecords(context.Context, *BatchUpdateHabitRecordsRequest) (*BatchUpdateHabitRecordsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BatchUpdateHabitRecords not implemented")
+}
+func (UnimplementedActionServiceServer) ListHabitRecords(context.Context, *ListHabitRecordsRequest) (*ListHabitRecordsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListHabitRecords not implemented")
 }
 func (UnimplementedActionServiceServer) SetActionMemoRelations(context.Context, *SetActionMemoRelationsRequest) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetActionMemoRelations not implemented")
@@ -437,20 +469,20 @@ func _ActionService_ReopenAction_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ActionService_TerminateGoal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TerminateGoalRequest)
+func _ActionService_TerminateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TerminateActionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ActionServiceServer).TerminateGoal(ctx, in)
+		return srv.(ActionServiceServer).TerminateAction(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ActionService_TerminateGoal_FullMethodName,
+		FullMethod: ActionService_TerminateAction_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ActionServiceServer).TerminateGoal(ctx, req.(*TerminateGoalRequest))
+		return srv.(ActionServiceServer).TerminateAction(ctx, req.(*TerminateActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -505,6 +537,42 @@ func _ActionService_ListGoalRecords_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ActionServiceServer).ListGoalRecords(ctx, req.(*ListGoalRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActionService_BatchUpdateHabitRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchUpdateHabitRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActionServiceServer).BatchUpdateHabitRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActionService_BatchUpdateHabitRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActionServiceServer).BatchUpdateHabitRecords(ctx, req.(*BatchUpdateHabitRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ActionService_ListHabitRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListHabitRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ActionServiceServer).ListHabitRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ActionService_ListHabitRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ActionServiceServer).ListHabitRecords(ctx, req.(*ListHabitRecordsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -617,8 +685,8 @@ var ActionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ActionService_ReopenAction_Handler,
 		},
 		{
-			MethodName: "TerminateGoal",
-			Handler:    _ActionService_TerminateGoal_Handler,
+			MethodName: "TerminateAction",
+			Handler:    _ActionService_TerminateAction_Handler,
 		},
 		{
 			MethodName: "MoveAction",
@@ -631,6 +699,14 @@ var ActionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGoalRecords",
 			Handler:    _ActionService_ListGoalRecords_Handler,
+		},
+		{
+			MethodName: "BatchUpdateHabitRecords",
+			Handler:    _ActionService_BatchUpdateHabitRecords_Handler,
+		},
+		{
+			MethodName: "ListHabitRecords",
+			Handler:    _ActionService_ListHabitRecords_Handler,
 		},
 		{
 			MethodName: "SetActionMemoRelations",

@@ -8,11 +8,14 @@ import (
 )
 
 var (
-	ErrActionUnsupported       = errors.New("action is not supported by the current database driver")
-	ErrActionNotFound          = errors.New("action not found")
-	ErrPinnedActionLimit       = errors.New("pinned action limit reached")
-	ErrGoalProgressNegative    = errors.New("goal progress cannot be negative")
-	ErrGoalProgressUnavailable = errors.New("goal progress is not available in the current state")
+	ErrActionUnsupported         = errors.New("action is not supported by the current database driver")
+	ErrActionNotFound            = errors.New("action not found")
+	ErrPinnedActionLimit         = errors.New("pinned action limit reached")
+	ErrGoalProgressNegative      = errors.New("goal progress cannot be negative")
+	ErrGoalProgressUnavailable   = errors.New("goal progress is not available in the current state")
+	ErrGoalOverwriteValueMissing = errors.New("goal overwrite value is required")
+	ErrHabitRecordUnavailable    = errors.New("habit record is not available for the action")
+	ErrActionStatusConflict      = errors.New("action status changed unexpectedly")
 )
 
 type ActionType string
@@ -21,6 +24,7 @@ const (
 	ActionTypeTask    ActionType = "TASK"
 	ActionTypeGoal    ActionType = "GOAL"
 	ActionTypeProject ActionType = "PROJECT"
+	ActionTypeHabit   ActionType = "HABIT"
 )
 
 type ActionStatus string
@@ -30,6 +34,29 @@ const (
 	ActionStatusInProgress ActionStatus = "IN_PROGRESS"
 	ActionStatusDone       ActionStatus = "DONE"
 	ActionStatusTerminated ActionStatus = "TERMINATED"
+)
+
+type HabitScheduleType string
+
+const (
+	HabitScheduleDaily        HabitScheduleType = "DAILY"
+	HabitScheduleIntervalDays HabitScheduleType = "INTERVAL_DAYS"
+	HabitScheduleWeekly       HabitScheduleType = "WEEKLY"
+)
+
+type HabitRecordStatus string
+
+const (
+	HabitRecordStatusUnchecked HabitRecordStatus = "UNCHECKED"
+	HabitRecordStatusCheckedIn HabitRecordStatus = "CHECKED_IN"
+	HabitRecordStatusLeave     HabitRecordStatus = "LEAVE"
+)
+
+type GoalRecordOperation string
+
+const (
+	GoalRecordOperationDelta     GoalRecordOperation = "DELTA"
+	GoalRecordOperationOverwrite GoalRecordOperation = "OVERWRITE"
 )
 
 type Action struct {
@@ -47,6 +74,10 @@ type Action struct {
 	GoalCurrent       *float64
 	GoalTarget        *float64
 	GoalUnit          *string
+	HabitStartDate    *string
+	HabitScheduleType *HabitScheduleType
+	HabitIntervalDays *int32
+	HabitWeekdays     []int32
 	PinnedTs          *int64
 	CreatedTs         int64
 	UpdatedTs         int64
@@ -93,20 +124,66 @@ type MoveAction struct {
 }
 
 type ActionGoalRecord struct {
-	ID         int32
-	UID        string
-	ActionID   int32
-	CreatorID  int32
-	Delta      float64
-	ValueAfter float64
-	Note       string
-	RecordedTs int64
-	CreatedTs  int64
+	ID             int32
+	UID            string
+	ActionID       int32
+	CreatorID      int32
+	Delta          float64
+	ValueAfter     float64
+	Operation      GoalRecordOperation
+	OverwriteValue *float64
+	Note           string
+	RecordedTs     int64
+	CreatedTs      int64
 }
 
 type FindActionGoalRecord struct {
 	ActionID  *int32
 	CreatorID *int32
+}
+
+type ActionHabitRecord struct {
+	ID             int32
+	UID            string
+	ActionID       int32
+	CreatorID      int32
+	OccurrenceDate string
+	Status         HabitRecordStatus
+	Note           string
+	CreatedTs      int64
+	UpdatedTs      int64
+}
+
+type FindActionHabitRecord struct {
+	ActionID       *int32
+	CreatorID      *int32
+	OccurrenceDate *string
+}
+
+type ActionStatusHistory struct {
+	ID            int32
+	ActionID      int32
+	CreatorID     int32
+	FromStatus    ActionStatus
+	ToStatus      ActionStatus
+	Reason        string
+	EffectiveDate string
+	CreatedTs     int64
+}
+
+type FindActionStatusHistory struct {
+	ActionID  *int32
+	CreatorID *int32
+}
+
+type TransitionActionStatus struct {
+	ActionID      int32
+	CreatorID     int32
+	FromStatus    ActionStatus
+	ToStatus      ActionStatus
+	Reason        string
+	EffectiveDate string
+	CreatedTs     int64
 }
 
 type MemoActionRelation struct {
@@ -139,6 +216,10 @@ type ActionDriver interface {
 	SetActionPinned(ctx context.Context, creatorID int32, actionID int32, pinned bool, limit int) error
 	CreateActionGoalRecord(ctx context.Context, create *ActionGoalRecord) (*ActionGoalRecord, *Action, error)
 	ListActionGoalRecords(ctx context.Context, find *FindActionGoalRecord) ([]*ActionGoalRecord, error)
+	BatchUpdateActionHabitRecords(ctx context.Context, records []*ActionHabitRecord) ([]*ActionHabitRecord, error)
+	ListActionHabitRecords(ctx context.Context, find *FindActionHabitRecord) ([]*ActionHabitRecord, error)
+	TransitionActionStatus(ctx context.Context, transition *TransitionActionStatus) (*ActionStatusHistory, error)
+	ListActionStatusHistories(ctx context.Context, find *FindActionStatusHistory) ([]*ActionStatusHistory, error)
 	SetMemoActionRelations(ctx context.Context, set *SetMemoActionRelations) error
 	ListMemoActionRelations(ctx context.Context, find *FindMemoActionRelation) ([]*MemoActionRelation, error)
 }
@@ -227,6 +308,38 @@ func (s *Store) ListActionGoalRecords(ctx context.Context, find *FindActionGoalR
 		return nil, err
 	}
 	return driver.ListActionGoalRecords(ctx, find)
+}
+
+func (s *Store) BatchUpdateActionHabitRecords(ctx context.Context, records []*ActionHabitRecord) ([]*ActionHabitRecord, error) {
+	driver, err := s.actionDriver()
+	if err != nil {
+		return nil, err
+	}
+	return driver.BatchUpdateActionHabitRecords(ctx, records)
+}
+
+func (s *Store) ListActionHabitRecords(ctx context.Context, find *FindActionHabitRecord) ([]*ActionHabitRecord, error) {
+	driver, err := s.actionDriver()
+	if err != nil {
+		return nil, err
+	}
+	return driver.ListActionHabitRecords(ctx, find)
+}
+
+func (s *Store) TransitionActionStatus(ctx context.Context, transition *TransitionActionStatus) (*ActionStatusHistory, error) {
+	driver, err := s.actionDriver()
+	if err != nil {
+		return nil, err
+	}
+	return driver.TransitionActionStatus(ctx, transition)
+}
+
+func (s *Store) ListActionStatusHistories(ctx context.Context, find *FindActionStatusHistory) ([]*ActionStatusHistory, error) {
+	driver, err := s.actionDriver()
+	if err != nil {
+		return nil, err
+	}
+	return driver.ListActionStatusHistories(ctx, find)
 }
 
 func (s *Store) SetMemoActionRelations(ctx context.Context, set *SetMemoActionRelations) error {

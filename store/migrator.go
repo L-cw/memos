@@ -39,7 +39,7 @@ func (s *Store) Migrate(ctx context.Context) error {
 		return errors.Wrap(err, "failed to pre-migrate")
 	}
 
-	if s.Profile.Mode == "prod" {
+	if s.Profile.Mode != "demo" {
 		migrationHistoryList, err := s.driver.FindMigrationHistoryList(ctx, &FindMigrationHistory{})
 		if err != nil {
 			return errors.Wrap(err, "failed to find migration history")
@@ -157,7 +157,7 @@ func (s *Store) preMigrate(ctx context.Context) error {
 			return errors.Wrap(err, "failed to update current schema version")
 		}
 	}
-	if s.Profile.Mode == "prod" {
+	if s.Profile.Mode != "demo" {
 		if err := s.normalizedMigrationHistoryList(ctx); err != nil {
 			return errors.Wrap(err, "failed to normalize migration history list")
 		}

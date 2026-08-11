@@ -12,4 +12,6 @@ DELETE FROM webhook;
 DELETE FROM reaction;
 DELETE FROM memo_action_relation;
 DELETE FROM action_goal_record;
+DELETE FROM action_habit_record;
+DELETE FROM action_status_history;
 DELETE FROM action;

@@ -32,6 +32,7 @@ const (
 	ActionType_TASK                    ActionType = 1
 	ActionType_GOAL                    ActionType = 2
 	ActionType_PROJECT                 ActionType = 3
+	ActionType_HABIT                   ActionType = 4
 )
 
 // Enum value maps for ActionType.
@@ -41,12 +42,14 @@ var (
 		1: "TASK",
 		2: "GOAL",
 		3: "PROJECT",
+		4: "HABIT",
 	}
 	ActionType_value = map[string]int32{
 		"ACTION_TYPE_UNSPECIFIED": 0,
 		"TASK":                    1,
 		"GOAL":                    2,
 		"PROJECT":                 3,
+		"HABIT":                   4,
 	}
 )
 
@@ -132,6 +135,159 @@ func (ActionStatus) EnumDescriptor() ([]byte, []int) {
 	return file_api_v1_action_service_proto_rawDescGZIP(), []int{1}
 }
 
+type HabitScheduleType int32
+
+const (
+	HabitScheduleType_HABIT_SCHEDULE_TYPE_UNSPECIFIED HabitScheduleType = 0
+	HabitScheduleType_DAILY                           HabitScheduleType = 1
+	HabitScheduleType_INTERVAL_DAYS                   HabitScheduleType = 2
+	HabitScheduleType_WEEKLY                          HabitScheduleType = 3
+)
+
+// Enum value maps for HabitScheduleType.
+var (
+	HabitScheduleType_name = map[int32]string{
+		0: "HABIT_SCHEDULE_TYPE_UNSPECIFIED",
+		1: "DAILY",
+		2: "INTERVAL_DAYS",
+		3: "WEEKLY",
+	}
+	HabitScheduleType_value = map[string]int32{
+		"HABIT_SCHEDULE_TYPE_UNSPECIFIED": 0,
+		"DAILY":                           1,
+		"INTERVAL_DAYS":                   2,
+		"WEEKLY":                          3,
+	}
+)
+
+func (x HabitScheduleType) Enum() *HabitScheduleType {
+	p := new(HabitScheduleType)
+	*p = x
+	return p
+}
+
+func (x HabitScheduleType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (HabitScheduleType) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_v1_action_service_proto_enumTypes[2].Descriptor()
+}
+
+func (HabitScheduleType) Type() protoreflect.EnumType {
+	return &file_api_v1_action_service_proto_enumTypes[2]
+}
+
+func (x HabitScheduleType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use HabitScheduleType.Descriptor instead.
+func (HabitScheduleType) EnumDescriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{2}
+}
+
+type HabitRecordStatus int32
+
+const (
+	HabitRecordStatus_HABIT_RECORD_STATUS_UNSPECIFIED HabitRecordStatus = 0
+	HabitRecordStatus_UNCHECKED                       HabitRecordStatus = 1
+	HabitRecordStatus_CHECKED_IN                      HabitRecordStatus = 2
+	HabitRecordStatus_LEAVE                           HabitRecordStatus = 3
+)
+
+// Enum value maps for HabitRecordStatus.
+var (
+	HabitRecordStatus_name = map[int32]string{
+		0: "HABIT_RECORD_STATUS_UNSPECIFIED",
+		1: "UNCHECKED",
+		2: "CHECKED_IN",
+		3: "LEAVE",
+	}
+	HabitRecordStatus_value = map[string]int32{
+		"HABIT_RECORD_STATUS_UNSPECIFIED": 0,
+		"UNCHECKED":                       1,
+		"CHECKED_IN":                      2,
+		"LEAVE":                           3,
+	}
+)
+
+func (x HabitRecordStatus) Enum() *HabitRecordStatus {
+	p := new(HabitRecordStatus)
+	*p = x
+	return p
+}
+
+func (x HabitRecordStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (HabitRecordStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_v1_action_service_proto_enumTypes[3].Descriptor()
+}
+
+func (HabitRecordStatus) Type() protoreflect.EnumType {
+	return &file_api_v1_action_service_proto_enumTypes[3]
+}
+
+func (x HabitRecordStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use HabitRecordStatus.Descriptor instead.
+func (HabitRecordStatus) EnumDescriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{3}
+}
+
+type GoalRecordOperation int32
+
+const (
+	GoalRecordOperation_GOAL_RECORD_OPERATION_UNSPECIFIED GoalRecordOperation = 0
+	GoalRecordOperation_DELTA                             GoalRecordOperation = 1
+	GoalRecordOperation_OVERWRITE                         GoalRecordOperation = 2
+)
+
+// Enum value maps for GoalRecordOperation.
+var (
+	GoalRecordOperation_name = map[int32]string{
+		0: "GOAL_RECORD_OPERATION_UNSPECIFIED",
+		1: "DELTA",
+		2: "OVERWRITE",
+	}
+	GoalRecordOperation_value = map[string]int32{
+		"GOAL_RECORD_OPERATION_UNSPECIFIED": 0,
+		"DELTA":                             1,
+		"OVERWRITE":                         2,
+	}
+)
+
+func (x GoalRecordOperation) Enum() *GoalRecordOperation {
+	p := new(GoalRecordOperation)
+	*p = x
+	return p
+}
+
+func (x GoalRecordOperation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (GoalRecordOperation) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_v1_action_service_proto_enumTypes[4].Descriptor()
+}
+
+func (GoalRecordOperation) Type() protoreflect.EnumType {
+	return &file_api_v1_action_service_proto_enumTypes[4]
+}
+
+func (x GoalRecordOperation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use GoalRecordOperation.Descriptor instead.
+func (GoalRecordOperation) EnumDescriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{4}
+}
+
 type GoalPayload struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Current       float64                `protobuf:"fixed64,1,opt,name=current,proto3" json:"current,omitempty"`
@@ -192,22 +348,260 @@ func (x *GoalPayload) GetUnit() string {
 	return ""
 }
 
-type GoalRecord struct {
+type HabitPayload struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Action        string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
-	Delta         float64                `protobuf:"fixed64,3,opt,name=delta,proto3" json:"delta,omitempty"`
-	ValueAfter    float64                `protobuf:"fixed64,4,opt,name=value_after,json=valueAfter,proto3" json:"value_after,omitempty"`
-	Note          string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
-	RecordedTime  *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=recorded_time,json=recordedTime,proto3" json:"recorded_time,omitempty"`
-	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	StartDate     string                 `protobuf:"bytes,1,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	ScheduleType  HabitScheduleType      `protobuf:"varint,2,opt,name=schedule_type,json=scheduleType,proto3,enum=memos.api.v1.HabitScheduleType" json:"schedule_type,omitempty"`
+	IntervalDays  int32                  `protobuf:"varint,3,opt,name=interval_days,json=intervalDays,proto3" json:"interval_days,omitempty"`
+	Weekdays      []int32                `protobuf:"varint,4,rep,packed,name=weekdays,proto3" json:"weekdays,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *HabitPayload) Reset() {
+	*x = HabitPayload{}
+	mi := &file_api_v1_action_service_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HabitPayload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HabitPayload) ProtoMessage() {}
+
+func (x *HabitPayload) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HabitPayload.ProtoReflect.Descriptor instead.
+func (*HabitPayload) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *HabitPayload) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *HabitPayload) GetScheduleType() HabitScheduleType {
+	if x != nil {
+		return x.ScheduleType
+	}
+	return HabitScheduleType_HABIT_SCHEDULE_TYPE_UNSPECIFIED
+}
+
+func (x *HabitPayload) GetIntervalDays() int32 {
+	if x != nil {
+		return x.IntervalDays
+	}
+	return 0
+}
+
+func (x *HabitPayload) GetWeekdays() []int32 {
+	if x != nil {
+		return x.Weekdays
+	}
+	return nil
+}
+
+type HabitRecord struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Action         string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	OccurrenceDate string                 `protobuf:"bytes,3,opt,name=occurrence_date,json=occurrenceDate,proto3" json:"occurrence_date,omitempty"`
+	Status         HabitRecordStatus      `protobuf:"varint,4,opt,name=status,proto3,enum=memos.api.v1.HabitRecordStatus" json:"status,omitempty"`
+	Note           string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
+	CreateTime     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	UpdateTime     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *HabitRecord) Reset() {
+	*x = HabitRecord{}
+	mi := &file_api_v1_action_service_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HabitRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HabitRecord) ProtoMessage() {}
+
+func (x *HabitRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HabitRecord.ProtoReflect.Descriptor instead.
+func (*HabitRecord) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *HabitRecord) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *HabitRecord) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *HabitRecord) GetOccurrenceDate() string {
+	if x != nil {
+		return x.OccurrenceDate
+	}
+	return ""
+}
+
+func (x *HabitRecord) GetStatus() HabitRecordStatus {
+	if x != nil {
+		return x.Status
+	}
+	return HabitRecordStatus_HABIT_RECORD_STATUS_UNSPECIFIED
+}
+
+func (x *HabitRecord) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *HabitRecord) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+func (x *HabitRecord) GetUpdateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdateTime
+	}
+	return nil
+}
+
+type ActionStatusHistory struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromStatus    ActionStatus           `protobuf:"varint,1,opt,name=from_status,json=fromStatus,proto3,enum=memos.api.v1.ActionStatus" json:"from_status,omitempty"`
+	ToStatus      ActionStatus           `protobuf:"varint,2,opt,name=to_status,json=toStatus,proto3,enum=memos.api.v1.ActionStatus" json:"to_status,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	EffectiveDate string                 `protobuf:"bytes,4,opt,name=effective_date,json=effectiveDate,proto3" json:"effective_date,omitempty"`
+	CreateTime    *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActionStatusHistory) Reset() {
+	*x = ActionStatusHistory{}
+	mi := &file_api_v1_action_service_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActionStatusHistory) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActionStatusHistory) ProtoMessage() {}
+
+func (x *ActionStatusHistory) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActionStatusHistory.ProtoReflect.Descriptor instead.
+func (*ActionStatusHistory) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ActionStatusHistory) GetFromStatus() ActionStatus {
+	if x != nil {
+		return x.FromStatus
+	}
+	return ActionStatus_ACTION_STATUS_UNSPECIFIED
+}
+
+func (x *ActionStatusHistory) GetToStatus() ActionStatus {
+	if x != nil {
+		return x.ToStatus
+	}
+	return ActionStatus_ACTION_STATUS_UNSPECIFIED
+}
+
+func (x *ActionStatusHistory) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *ActionStatusHistory) GetEffectiveDate() string {
+	if x != nil {
+		return x.EffectiveDate
+	}
+	return ""
+}
+
+func (x *ActionStatusHistory) GetCreateTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreateTime
+	}
+	return nil
+}
+
+type GoalRecord struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Action         string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	Delta          float64                `protobuf:"fixed64,3,opt,name=delta,proto3" json:"delta,omitempty"`
+	ValueAfter     float64                `protobuf:"fixed64,4,opt,name=value_after,json=valueAfter,proto3" json:"value_after,omitempty"`
+	Note           string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
+	RecordedTime   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=recorded_time,json=recordedTime,proto3" json:"recorded_time,omitempty"`
+	CreateTime     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=create_time,json=createTime,proto3" json:"create_time,omitempty"`
+	Operation      GoalRecordOperation    `protobuf:"varint,8,opt,name=operation,proto3,enum=memos.api.v1.GoalRecordOperation" json:"operation,omitempty"`
+	OverwriteValue *float64               `protobuf:"fixed64,9,opt,name=overwrite_value,json=overwriteValue,proto3,oneof" json:"overwrite_value,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
 func (x *GoalRecord) Reset() {
 	*x = GoalRecord{}
-	mi := &file_api_v1_action_service_proto_msgTypes[1]
+	mi := &file_api_v1_action_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -219,7 +613,7 @@ func (x *GoalRecord) String() string {
 func (*GoalRecord) ProtoMessage() {}
 
 func (x *GoalRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[1]
+	mi := &file_api_v1_action_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -232,7 +626,7 @@ func (x *GoalRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoalRecord.ProtoReflect.Descriptor instead.
 func (*GoalRecord) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{1}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GoalRecord) GetName() string {
@@ -284,6 +678,20 @@ func (x *GoalRecord) GetCreateTime() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *GoalRecord) GetOperation() GoalRecordOperation {
+	if x != nil {
+		return x.Operation
+	}
+	return GoalRecordOperation_GOAL_RECORD_OPERATION_UNSPECIFIED
+}
+
+func (x *GoalRecord) GetOverwriteValue() float64 {
+	if x != nil && x.OverwriteValue != nil {
+		return *x.OverwriteValue
+	}
+	return 0
+}
+
 type MemoReference struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -296,7 +704,7 @@ type MemoReference struct {
 
 func (x *MemoReference) Reset() {
 	*x = MemoReference{}
-	mi := &file_api_v1_action_service_proto_msgTypes[2]
+	mi := &file_api_v1_action_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +716,7 @@ func (x *MemoReference) String() string {
 func (*MemoReference) ProtoMessage() {}
 
 func (x *MemoReference) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[2]
+	mi := &file_api_v1_action_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +729,7 @@ func (x *MemoReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoReference.ProtoReflect.Descriptor instead.
 func (*MemoReference) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{2}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *MemoReference) GetName() string {
@@ -374,13 +782,15 @@ type Action struct {
 	TerminationReason string                 `protobuf:"bytes,18,opt,name=termination_reason,json=terminationReason,proto3" json:"termination_reason,omitempty"`
 	TerminateTime     *timestamppb.Timestamp `protobuf:"bytes,19,opt,name=terminate_time,json=terminateTime,proto3" json:"terminate_time,omitempty"`
 	GoalRecords       []*GoalRecord          `protobuf:"bytes,20,rep,name=goal_records,json=goalRecords,proto3" json:"goal_records,omitempty"`
+	Habit             *HabitPayload          `protobuf:"bytes,21,opt,name=habit,proto3" json:"habit,omitempty"`
+	StatusHistory     []*ActionStatusHistory `protobuf:"bytes,22,rep,name=status_history,json=statusHistory,proto3" json:"status_history,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Action) Reset() {
 	*x = Action{}
-	mi := &file_api_v1_action_service_proto_msgTypes[3]
+	mi := &file_api_v1_action_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +802,7 @@ func (x *Action) String() string {
 func (*Action) ProtoMessage() {}
 
 func (x *Action) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[3]
+	mi := &file_api_v1_action_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -405,7 +815,7 @@ func (x *Action) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Action.ProtoReflect.Descriptor instead.
 func (*Action) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{3}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Action) GetName() string {
@@ -548,6 +958,20 @@ func (x *Action) GetGoalRecords() []*GoalRecord {
 	return nil
 }
 
+func (x *Action) GetHabit() *HabitPayload {
+	if x != nil {
+		return x.Habit
+	}
+	return nil
+}
+
+func (x *Action) GetStatusHistory() []*ActionStatusHistory {
+	if x != nil {
+		return x.StatusHistory
+	}
+	return nil
+}
+
 type CreateActionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Action        *Action                `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
@@ -557,7 +981,7 @@ type CreateActionRequest struct {
 
 func (x *CreateActionRequest) Reset() {
 	*x = CreateActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[4]
+	mi := &file_api_v1_action_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -569,7 +993,7 @@ func (x *CreateActionRequest) String() string {
 func (*CreateActionRequest) ProtoMessage() {}
 
 func (x *CreateActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[4]
+	mi := &file_api_v1_action_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -582,7 +1006,7 @@ func (x *CreateActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateActionRequest.ProtoReflect.Descriptor instead.
 func (*CreateActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{4}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateActionRequest) GetAction() *Action {
@@ -606,7 +1030,7 @@ type ListActionsRequest struct {
 
 func (x *ListActionsRequest) Reset() {
 	*x = ListActionsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[5]
+	mi := &file_api_v1_action_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -618,7 +1042,7 @@ func (x *ListActionsRequest) String() string {
 func (*ListActionsRequest) ProtoMessage() {}
 
 func (x *ListActionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[5]
+	mi := &file_api_v1_action_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,7 +1055,7 @@ func (x *ListActionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionsRequest.ProtoReflect.Descriptor instead.
 func (*ListActionsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{5}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListActionsRequest) GetPageSize() int32 {
@@ -686,7 +1110,7 @@ type ListActionsResponse struct {
 
 func (x *ListActionsResponse) Reset() {
 	*x = ListActionsResponse{}
-	mi := &file_api_v1_action_service_proto_msgTypes[6]
+	mi := &file_api_v1_action_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -698,7 +1122,7 @@ func (x *ListActionsResponse) String() string {
 func (*ListActionsResponse) ProtoMessage() {}
 
 func (x *ListActionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[6]
+	mi := &file_api_v1_action_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -711,7 +1135,7 @@ func (x *ListActionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionsResponse.ProtoReflect.Descriptor instead.
 func (*ListActionsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{6}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListActionsResponse) GetActions() []*Action {
@@ -737,7 +1161,7 @@ type GetActionRequest struct {
 
 func (x *GetActionRequest) Reset() {
 	*x = GetActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[7]
+	mi := &file_api_v1_action_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -749,7 +1173,7 @@ func (x *GetActionRequest) String() string {
 func (*GetActionRequest) ProtoMessage() {}
 
 func (x *GetActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[7]
+	mi := &file_api_v1_action_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -762,7 +1186,7 @@ func (x *GetActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetActionRequest.ProtoReflect.Descriptor instead.
 func (*GetActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{7}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetActionRequest) GetName() string {
@@ -782,7 +1206,7 @@ type UpdateActionRequest struct {
 
 func (x *UpdateActionRequest) Reset() {
 	*x = UpdateActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[8]
+	mi := &file_api_v1_action_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -794,7 +1218,7 @@ func (x *UpdateActionRequest) String() string {
 func (*UpdateActionRequest) ProtoMessage() {}
 
 func (x *UpdateActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[8]
+	mi := &file_api_v1_action_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -807,7 +1231,7 @@ func (x *UpdateActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateActionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{8}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateActionRequest) GetAction() *Action {
@@ -833,7 +1257,7 @@ type DeleteActionRequest struct {
 
 func (x *DeleteActionRequest) Reset() {
 	*x = DeleteActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[9]
+	mi := &file_api_v1_action_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +1269,7 @@ func (x *DeleteActionRequest) String() string {
 func (*DeleteActionRequest) ProtoMessage() {}
 
 func (x *DeleteActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[9]
+	mi := &file_api_v1_action_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +1282,7 @@ func (x *DeleteActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteActionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{9}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteActionRequest) GetName() string {
@@ -877,7 +1301,7 @@ type CompleteActionRequest struct {
 
 func (x *CompleteActionRequest) Reset() {
 	*x = CompleteActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[10]
+	mi := &file_api_v1_action_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -889,7 +1313,7 @@ func (x *CompleteActionRequest) String() string {
 func (*CompleteActionRequest) ProtoMessage() {}
 
 func (x *CompleteActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[10]
+	mi := &file_api_v1_action_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -902,7 +1326,7 @@ func (x *CompleteActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteActionRequest.ProtoReflect.Descriptor instead.
 func (*CompleteActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{10}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CompleteActionRequest) GetName() string {
@@ -915,13 +1339,14 @@ func (x *CompleteActionRequest) GetName() string {
 type ReopenActionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	EffectiveDate string                 `protobuf:"bytes,2,opt,name=effective_date,json=effectiveDate,proto3" json:"effective_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReopenActionRequest) Reset() {
 	*x = ReopenActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[11]
+	mi := &file_api_v1_action_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1358,7 @@ func (x *ReopenActionRequest) String() string {
 func (*ReopenActionRequest) ProtoMessage() {}
 
 func (x *ReopenActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[11]
+	mi := &file_api_v1_action_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1371,7 @@ func (x *ReopenActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReopenActionRequest.ProtoReflect.Descriptor instead.
 func (*ReopenActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{11}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ReopenActionRequest) GetName() string {
@@ -956,29 +1381,37 @@ func (x *ReopenActionRequest) GetName() string {
 	return ""
 }
 
-type TerminateGoalRequest struct {
+func (x *ReopenActionRequest) GetEffectiveDate() string {
+	if x != nil {
+		return x.EffectiveDate
+	}
+	return ""
+}
+
+type TerminateActionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	EffectiveDate string                 `protobuf:"bytes,3,opt,name=effective_date,json=effectiveDate,proto3" json:"effective_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TerminateGoalRequest) Reset() {
-	*x = TerminateGoalRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[12]
+func (x *TerminateActionRequest) Reset() {
+	*x = TerminateActionRequest{}
+	mi := &file_api_v1_action_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TerminateGoalRequest) String() string {
+func (x *TerminateActionRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TerminateGoalRequest) ProtoMessage() {}
+func (*TerminateActionRequest) ProtoMessage() {}
 
-func (x *TerminateGoalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[12]
+func (x *TerminateActionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -989,21 +1422,28 @@ func (x *TerminateGoalRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TerminateGoalRequest.ProtoReflect.Descriptor instead.
-func (*TerminateGoalRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use TerminateActionRequest.ProtoReflect.Descriptor instead.
+func (*TerminateActionRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *TerminateGoalRequest) GetName() string {
+func (x *TerminateActionRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *TerminateGoalRequest) GetReason() string {
+func (x *TerminateActionRequest) GetReason() string {
 	if x != nil {
 		return x.Reason
+	}
+	return ""
+}
+
+func (x *TerminateActionRequest) GetEffectiveDate() string {
+	if x != nil {
+		return x.EffectiveDate
 	}
 	return ""
 }
@@ -1019,7 +1459,7 @@ type MoveActionRequest struct {
 
 func (x *MoveActionRequest) Reset() {
 	*x = MoveActionRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[13]
+	mi := &file_api_v1_action_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1471,7 @@ func (x *MoveActionRequest) String() string {
 func (*MoveActionRequest) ProtoMessage() {}
 
 func (x *MoveActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[13]
+	mi := &file_api_v1_action_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1484,7 @@ func (x *MoveActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoveActionRequest.ProtoReflect.Descriptor instead.
 func (*MoveActionRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{13}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *MoveActionRequest) GetName() string {
@@ -1078,7 +1518,7 @@ type CreateGoalRecordRequest struct {
 
 func (x *CreateGoalRecordRequest) Reset() {
 	*x = CreateGoalRecordRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[14]
+	mi := &file_api_v1_action_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1090,7 +1530,7 @@ func (x *CreateGoalRecordRequest) String() string {
 func (*CreateGoalRecordRequest) ProtoMessage() {}
 
 func (x *CreateGoalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[14]
+	mi := &file_api_v1_action_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1103,7 +1543,7 @@ func (x *CreateGoalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGoalRecordRequest.ProtoReflect.Descriptor instead.
 func (*CreateGoalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{14}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateGoalRecordRequest) GetParent() string {
@@ -1129,7 +1569,7 @@ type ListGoalRecordsRequest struct {
 
 func (x *ListGoalRecordsRequest) Reset() {
 	*x = ListGoalRecordsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[15]
+	mi := &file_api_v1_action_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1141,7 +1581,7 @@ func (x *ListGoalRecordsRequest) String() string {
 func (*ListGoalRecordsRequest) ProtoMessage() {}
 
 func (x *ListGoalRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[15]
+	mi := &file_api_v1_action_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1154,7 +1594,7 @@ func (x *ListGoalRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGoalRecordsRequest.ProtoReflect.Descriptor instead.
 func (*ListGoalRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{15}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListGoalRecordsRequest) GetParent() string {
@@ -1173,7 +1613,7 @@ type ListGoalRecordsResponse struct {
 
 func (x *ListGoalRecordsResponse) Reset() {
 	*x = ListGoalRecordsResponse{}
-	mi := &file_api_v1_action_service_proto_msgTypes[16]
+	mi := &file_api_v1_action_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1185,7 +1625,7 @@ func (x *ListGoalRecordsResponse) String() string {
 func (*ListGoalRecordsResponse) ProtoMessage() {}
 
 func (x *ListGoalRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[16]
+	mi := &file_api_v1_action_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1198,12 +1638,196 @@ func (x *ListGoalRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGoalRecordsResponse.ProtoReflect.Descriptor instead.
 func (*ListGoalRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{16}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListGoalRecordsResponse) GetGoalRecords() []*GoalRecord {
 	if x != nil {
 		return x.GoalRecords
+	}
+	return nil
+}
+
+type BatchUpdateHabitRecordsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HabitRecords  []*HabitRecord         `protobuf:"bytes,1,rep,name=habit_records,json=habitRecords,proto3" json:"habit_records,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchUpdateHabitRecordsRequest) Reset() {
+	*x = BatchUpdateHabitRecordsRequest{}
+	mi := &file_api_v1_action_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchUpdateHabitRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchUpdateHabitRecordsRequest) ProtoMessage() {}
+
+func (x *BatchUpdateHabitRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchUpdateHabitRecordsRequest.ProtoReflect.Descriptor instead.
+func (*BatchUpdateHabitRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *BatchUpdateHabitRecordsRequest) GetHabitRecords() []*HabitRecord {
+	if x != nil {
+		return x.HabitRecords
+	}
+	return nil
+}
+
+type BatchUpdateHabitRecordsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HabitRecords  []*HabitRecord         `protobuf:"bytes,1,rep,name=habit_records,json=habitRecords,proto3" json:"habit_records,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BatchUpdateHabitRecordsResponse) Reset() {
+	*x = BatchUpdateHabitRecordsResponse{}
+	mi := &file_api_v1_action_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchUpdateHabitRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchUpdateHabitRecordsResponse) ProtoMessage() {}
+
+func (x *BatchUpdateHabitRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchUpdateHabitRecordsResponse.ProtoReflect.Descriptor instead.
+func (*BatchUpdateHabitRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *BatchUpdateHabitRecordsResponse) GetHabitRecords() []*HabitRecord {
+	if x != nil {
+		return x.HabitRecords
+	}
+	return nil
+}
+
+type ListHabitRecordsRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	OccurrenceDate string                 `protobuf:"bytes,1,opt,name=occurrence_date,json=occurrenceDate,proto3" json:"occurrence_date,omitempty"`
+	Action         string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListHabitRecordsRequest) Reset() {
+	*x = ListHabitRecordsRequest{}
+	mi := &file_api_v1_action_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHabitRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHabitRecordsRequest) ProtoMessage() {}
+
+func (x *ListHabitRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHabitRecordsRequest.ProtoReflect.Descriptor instead.
+func (*ListHabitRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListHabitRecordsRequest) GetOccurrenceDate() string {
+	if x != nil {
+		return x.OccurrenceDate
+	}
+	return ""
+}
+
+func (x *ListHabitRecordsRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+type ListHabitRecordsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HabitRecords  []*HabitRecord         `protobuf:"bytes,1,rep,name=habit_records,json=habitRecords,proto3" json:"habit_records,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListHabitRecordsResponse) Reset() {
+	*x = ListHabitRecordsResponse{}
+	mi := &file_api_v1_action_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHabitRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHabitRecordsResponse) ProtoMessage() {}
+
+func (x *ListHabitRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_action_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHabitRecordsResponse.ProtoReflect.Descriptor instead.
+func (*ListHabitRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ListHabitRecordsResponse) GetHabitRecords() []*HabitRecord {
+	if x != nil {
+		return x.HabitRecords
 	}
 	return nil
 }
@@ -1218,7 +1842,7 @@ type SetActionMemoRelationsRequest struct {
 
 func (x *SetActionMemoRelationsRequest) Reset() {
 	*x = SetActionMemoRelationsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[17]
+	mi := &file_api_v1_action_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1230,7 +1854,7 @@ func (x *SetActionMemoRelationsRequest) String() string {
 func (*SetActionMemoRelationsRequest) ProtoMessage() {}
 
 func (x *SetActionMemoRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[17]
+	mi := &file_api_v1_action_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1243,7 +1867,7 @@ func (x *SetActionMemoRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetActionMemoRelationsRequest.ProtoReflect.Descriptor instead.
 func (*SetActionMemoRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{17}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SetActionMemoRelationsRequest) GetName() string {
@@ -1269,7 +1893,7 @@ type ListActionMemoRelationsRequest struct {
 
 func (x *ListActionMemoRelationsRequest) Reset() {
 	*x = ListActionMemoRelationsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[18]
+	mi := &file_api_v1_action_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1281,7 +1905,7 @@ func (x *ListActionMemoRelationsRequest) String() string {
 func (*ListActionMemoRelationsRequest) ProtoMessage() {}
 
 func (x *ListActionMemoRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[18]
+	mi := &file_api_v1_action_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1294,7 +1918,7 @@ func (x *ListActionMemoRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionMemoRelationsRequest.ProtoReflect.Descriptor instead.
 func (*ListActionMemoRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{18}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListActionMemoRelationsRequest) GetName() string {
@@ -1313,7 +1937,7 @@ type ListActionMemoRelationsResponse struct {
 
 func (x *ListActionMemoRelationsResponse) Reset() {
 	*x = ListActionMemoRelationsResponse{}
-	mi := &file_api_v1_action_service_proto_msgTypes[19]
+	mi := &file_api_v1_action_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1325,7 +1949,7 @@ func (x *ListActionMemoRelationsResponse) String() string {
 func (*ListActionMemoRelationsResponse) ProtoMessage() {}
 
 func (x *ListActionMemoRelationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[19]
+	mi := &file_api_v1_action_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1338,7 +1962,7 @@ func (x *ListActionMemoRelationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListActionMemoRelationsResponse.ProtoReflect.Descriptor instead.
 func (*ListActionMemoRelationsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{19}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListActionMemoRelationsResponse) GetMemos() []*MemoReference {
@@ -1358,7 +1982,7 @@ type SetMemoActionRelationsRequest struct {
 
 func (x *SetMemoActionRelationsRequest) Reset() {
 	*x = SetMemoActionRelationsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[20]
+	mi := &file_api_v1_action_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1370,7 +1994,7 @@ func (x *SetMemoActionRelationsRequest) String() string {
 func (*SetMemoActionRelationsRequest) ProtoMessage() {}
 
 func (x *SetMemoActionRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[20]
+	mi := &file_api_v1_action_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1383,7 +2007,7 @@ func (x *SetMemoActionRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMemoActionRelationsRequest.ProtoReflect.Descriptor instead.
 func (*SetMemoActionRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{20}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *SetMemoActionRelationsRequest) GetName() string {
@@ -1409,7 +2033,7 @@ type ListMemoActionRelationsRequest struct {
 
 func (x *ListMemoActionRelationsRequest) Reset() {
 	*x = ListMemoActionRelationsRequest{}
-	mi := &file_api_v1_action_service_proto_msgTypes[21]
+	mi := &file_api_v1_action_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1421,7 +2045,7 @@ func (x *ListMemoActionRelationsRequest) String() string {
 func (*ListMemoActionRelationsRequest) ProtoMessage() {}
 
 func (x *ListMemoActionRelationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[21]
+	mi := &file_api_v1_action_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1434,7 +2058,7 @@ func (x *ListMemoActionRelationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoActionRelationsRequest.ProtoReflect.Descriptor instead.
 func (*ListMemoActionRelationsRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{21}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListMemoActionRelationsRequest) GetName() string {
@@ -1453,7 +2077,7 @@ type ListMemoActionRelationsResponse struct {
 
 func (x *ListMemoActionRelationsResponse) Reset() {
 	*x = ListMemoActionRelationsResponse{}
-	mi := &file_api_v1_action_service_proto_msgTypes[22]
+	mi := &file_api_v1_action_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1465,7 +2089,7 @@ func (x *ListMemoActionRelationsResponse) String() string {
 func (*ListMemoActionRelationsResponse) ProtoMessage() {}
 
 func (x *ListMemoActionRelationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_action_service_proto_msgTypes[22]
+	mi := &file_api_v1_action_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1478,7 +2102,7 @@ func (x *ListMemoActionRelationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoActionRelationsResponse.ProtoReflect.Descriptor instead.
 func (*ListMemoActionRelationsResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_action_service_proto_rawDescGZIP(), []int{22}
+	return file_api_v1_action_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListMemoActionRelationsResponse) GetActions() []*Action {
@@ -1496,7 +2120,31 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\vGoalPayload\x12\x18\n" +
 	"\acurrent\x18\x01 \x01(\x01R\acurrent\x12\x16\n" +
 	"\x06target\x18\x02 \x01(\x01R\x06target\x12\x12\n" +
-	"\x04unit\x18\x03 \x01(\tR\x04unit\"\x99\x02\n" +
+	"\x04unit\x18\x03 \x01(\tR\x04unit\"\xb4\x01\n" +
+	"\fHabitPayload\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x01 \x01(\tR\tstartDate\x12D\n" +
+	"\rschedule_type\x18\x02 \x01(\x0e2\x1f.memos.api.v1.HabitScheduleTypeR\fscheduleType\x12#\n" +
+	"\rinterval_days\x18\x03 \x01(\x05R\fintervalDays\x12\x1a\n" +
+	"\bweekdays\x18\x04 \x03(\x05R\bweekdays\"\xbb\x02\n" +
+	"\vHabitRecord\x12\x18\n" +
+	"\x04name\x18\x01 \x01(\tB\x04\xe2A\x01\x03R\x04name\x12\x16\n" +
+	"\x06action\x18\x02 \x01(\tR\x06action\x12'\n" +
+	"\x0foccurrence_date\x18\x03 \x01(\tR\x0eoccurrenceDate\x127\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x1f.memos.api.v1.HabitRecordStatusR\x06status\x12\x12\n" +
+	"\x04note\x18\x05 \x01(\tR\x04note\x12A\n" +
+	"\vcreate_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampB\x04\xe2A\x01\x03R\n" +
+	"createTime\x12A\n" +
+	"\vupdate_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampB\x04\xe2A\x01\x03R\n" +
+	"updateTime\"\x8d\x02\n" +
+	"\x13ActionStatusHistory\x12;\n" +
+	"\vfrom_status\x18\x01 \x01(\x0e2\x1a.memos.api.v1.ActionStatusR\n" +
+	"fromStatus\x127\n" +
+	"\tto_status\x18\x02 \x01(\x0e2\x1a.memos.api.v1.ActionStatusR\btoStatus\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12%\n" +
+	"\x0eeffective_date\x18\x04 \x01(\tR\reffectiveDate\x12A\n" +
+	"\vcreate_time\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampB\x04\xe2A\x01\x03R\n" +
+	"createTime\"\xa2\x03\n" +
 	"\n" +
 	"GoalRecord\x12\x18\n" +
 	"\x04name\x18\x01 \x01(\tB\x04\xe2A\x01\x03R\x04name\x12\x1c\n" +
@@ -1507,13 +2155,16 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\x04note\x18\x05 \x01(\tR\x04note\x12?\n" +
 	"\rrecorded_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\frecordedTime\x12A\n" +
 	"\vcreate_time\x18\a \x01(\v2\x1a.google.protobuf.TimestampB\x04\xe2A\x01\x03R\n" +
-	"createTime\"\x90\x01\n" +
+	"createTime\x12?\n" +
+	"\toperation\x18\b \x01(\x0e2!.memos.api.v1.GoalRecordOperationR\toperation\x122\n" +
+	"\x0foverwrite_value\x18\t \x01(\x01B\x04\xe2A\x01\x04H\x00R\x0eoverwriteValue\x88\x01\x01B\x12\n" +
+	"\x10_overwrite_value\"\x90\x01\n" +
 	"\rMemoReference\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\asnippet\x18\x03 \x01(\tR\asnippet\x12;\n" +
 	"\vupdate_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"updateTime\"\xb6\a\n" +
+	"updateTime\"\xb8\b\n" +
 	"\x06Action\x12\x18\n" +
 	"\x04name\x18\x01 \x01(\tB\x04\xe2A\x01\x03R\x04name\x12\x1e\n" +
 	"\acreator\x18\x02 \x01(\tB\x04\xe2A\x01\x03R\acreator\x12,\n" +
@@ -1538,7 +2189,9 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\x06pinned\x18\x11 \x01(\bR\x06pinned\x123\n" +
 	"\x12termination_reason\x18\x12 \x01(\tB\x04\xe2A\x01\x03R\x11terminationReason\x12G\n" +
 	"\x0eterminate_time\x18\x13 \x01(\v2\x1a.google.protobuf.TimestampB\x04\xe2A\x01\x03R\rterminateTime\x12A\n" +
-	"\fgoal_records\x18\x14 \x03(\v2\x18.memos.api.v1.GoalRecordB\x04\xe2A\x01\x03R\vgoalRecordsB\t\n" +
+	"\fgoal_records\x18\x14 \x03(\v2\x18.memos.api.v1.GoalRecordB\x04\xe2A\x01\x03R\vgoalRecords\x120\n" +
+	"\x05habit\x18\x15 \x01(\v2\x1a.memos.api.v1.HabitPayloadR\x05habit\x12N\n" +
+	"\x0estatus_history\x18\x16 \x03(\v2!.memos.api.v1.ActionStatusHistoryB\x04\xe2A\x01\x03R\rstatusHistoryB\t\n" +
 	"\a_parent\"I\n" +
 	"\x13CreateActionRequest\x122\n" +
 	"\x06action\x18\x01 \x01(\v2\x14.memos.api.v1.ActionB\x04\xe2A\x01\x02R\x06action\"\x82\x02\n" +
@@ -1564,12 +2217,14 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\x13DeleteActionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"+\n" +
 	"\x15CompleteActionRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\")\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"P\n" +
 	"\x13ReopenActionRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"B\n" +
-	"\x14TerminateGoalRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12%\n" +
+	"\x0eeffective_date\x18\x02 \x01(\tR\reffectiveDate\"k\n" +
+	"\x16TerminateActionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"n\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12%\n" +
+	"\x0eeffective_date\x18\x03 \x01(\tR\reffectiveDate\"n\n" +
 	"\x11MoveActionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
 	"\x06parent\x18\x02 \x01(\tH\x00R\x06parent\x88\x01\x01\x12\x1d\n" +
@@ -1583,7 +2238,16 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\x16ListGoalRecordsRequest\x12\x16\n" +
 	"\x06parent\x18\x01 \x01(\tR\x06parent\"V\n" +
 	"\x17ListGoalRecordsResponse\x12;\n" +
-	"\fgoal_records\x18\x01 \x03(\v2\x18.memos.api.v1.GoalRecordR\vgoalRecords\"R\n" +
+	"\fgoal_records\x18\x01 \x03(\v2\x18.memos.api.v1.GoalRecordR\vgoalRecords\"f\n" +
+	"\x1eBatchUpdateHabitRecordsRequest\x12D\n" +
+	"\rhabit_records\x18\x01 \x03(\v2\x19.memos.api.v1.HabitRecordB\x04\xe2A\x01\x02R\fhabitRecords\"a\n" +
+	"\x1fBatchUpdateHabitRecordsResponse\x12>\n" +
+	"\rhabit_records\x18\x01 \x03(\v2\x19.memos.api.v1.HabitRecordR\fhabitRecords\"Z\n" +
+	"\x17ListHabitRecordsRequest\x12'\n" +
+	"\x0foccurrence_date\x18\x01 \x01(\tR\x0eoccurrenceDate\x12\x16\n" +
+	"\x06action\x18\x02 \x01(\tR\x06action\"Z\n" +
+	"\x18ListHabitRecordsResponse\x12>\n" +
+	"\rhabit_records\x18\x01 \x03(\v2\x19.memos.api.v1.HabitRecordR\fhabitRecords\"R\n" +
 	"\x1dSetActionMemoRelationsRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1d\n" +
 	"\n" +
@@ -1598,20 +2262,37 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\x1eListMemoActionRelationsRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"Q\n" +
 	"\x1fListMemoActionRelationsResponse\x12.\n" +
-	"\aactions\x18\x01 \x03(\v2\x14.memos.api.v1.ActionR\aactions*J\n" +
+	"\aactions\x18\x01 \x03(\v2\x14.memos.api.v1.ActionR\aactions*U\n" +
 	"\n" +
 	"ActionType\x12\x1b\n" +
 	"\x17ACTION_TYPE_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04TASK\x10\x01\x12\b\n" +
 	"\x04GOAL\x10\x02\x12\v\n" +
-	"\aPROJECT\x10\x03*b\n" +
+	"\aPROJECT\x10\x03\x12\t\n" +
+	"\x05HABIT\x10\x04*b\n" +
 	"\fActionStatus\x12\x1d\n" +
 	"\x19ACTION_STATUS_UNSPECIFIED\x10\x00\x12\b\n" +
 	"\x04TODO\x10\x01\x12\x0f\n" +
 	"\vIN_PROGRESS\x10\x02\x12\b\n" +
 	"\x04DONE\x10\x03\x12\x0e\n" +
 	"\n" +
-	"TERMINATED\x10\x042\xbb\x0f\n" +
+	"TERMINATED\x10\x04*b\n" +
+	"\x11HabitScheduleType\x12#\n" +
+	"\x1fHABIT_SCHEDULE_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05DAILY\x10\x01\x12\x11\n" +
+	"\rINTERVAL_DAYS\x10\x02\x12\n" +
+	"\n" +
+	"\x06WEEKLY\x10\x03*b\n" +
+	"\x11HabitRecordStatus\x12#\n" +
+	"\x1fHABIT_RECORD_STATUS_UNSPECIFIED\x10\x00\x12\r\n" +
+	"\tUNCHECKED\x10\x01\x12\x0e\n" +
+	"\n" +
+	"CHECKED_IN\x10\x02\x12\t\n" +
+	"\x05LEAVE\x10\x03*V\n" +
+	"\x13GoalRecordOperation\x12%\n" +
+	"!GOAL_RECORD_OPERATION_UNSPECIFIED\x10\x00\x12\t\n" +
+	"\x05DELTA\x10\x01\x12\r\n" +
+	"\tOVERWRITE\x10\x022\xe6\x11\n" +
 	"\rActionService\x12h\n" +
 	"\fCreateAction\x12!.memos.api.v1.CreateActionRequest\x1a\x14.memos.api.v1.Action\"\x1f\x82\xd3\xe4\x93\x02\x19:\x06action\"\x0f/api/v1/actions\x12k\n" +
 	"\vListActions\x12 .memos.api.v1.ListActionsRequest\x1a!.memos.api.v1.ListActionsResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/v1/actions\x12j\n" +
@@ -1619,12 +2300,14 @@ const file_api_v1_action_service_proto_rawDesc = "" +
 	"\fUpdateAction\x12!.memos.api.v1.UpdateActionRequest\x1a\x14.memos.api.v1.Action\"D\xdaA\x12action,update_mask\x82\xd3\xe4\x93\x02):\x06action2\x1f/api/v1/{action.name=actions/*}\x12r\n" +
 	"\fDeleteAction\x12!.memos.api.v1.DeleteActionRequest\x1a\x16.google.protobuf.Empty\"'\xdaA\x04name\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/{name=actions/*}\x12y\n" +
 	"\x0eCompleteAction\x12#.memos.api.v1.CompleteActionRequest\x1a\x14.memos.api.v1.Action\",\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/{name=actions/*}:complete\x12s\n" +
-	"\fReopenAction\x12!.memos.api.v1.ReopenActionRequest\x1a\x14.memos.api.v1.Action\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/{name=actions/*}:reopen\x12x\n" +
-	"\rTerminateGoal\x12\".memos.api.v1.TerminateGoalRequest\x1a\x14.memos.api.v1.Action\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/{name=actions/*}:terminate\x12m\n" +
+	"\fReopenAction\x12!.memos.api.v1.ReopenActionRequest\x1a\x14.memos.api.v1.Action\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/v1/{name=actions/*}:reopen\x12|\n" +
+	"\x0fTerminateAction\x12$.memos.api.v1.TerminateActionRequest\x1a\x14.memos.api.v1.Action\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/{name=actions/*}:terminate\x12m\n" +
 	"\n" +
 	"MoveAction\x12\x1f.memos.api.v1.MoveActionRequest\x1a\x14.memos.api.v1.Action\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/{name=actions/*}:move\x12\x90\x01\n" +
 	"\x10CreateGoalRecord\x12%.memos.api.v1.CreateGoalRecordRequest\x1a\x18.memos.api.v1.GoalRecord\";\x82\xd3\xe4\x93\x025:\vgoal_record\"&/api/v1/{parent=actions/*}/goalRecords\x12\x8e\x01\n" +
-	"\x0fListGoalRecords\x12$.memos.api.v1.ListGoalRecordsRequest\x1a%.memos.api.v1.ListGoalRecordsResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/{parent=actions/*}/goalRecords\x12\x90\x01\n" +
+	"\x0fListGoalRecords\x12$.memos.api.v1.ListGoalRecordsRequest\x1a%.memos.api.v1.ListGoalRecordsResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/{parent=actions/*}/goalRecords\x12\xa3\x01\n" +
+	"\x17BatchUpdateHabitRecords\x12,.memos.api.v1.BatchUpdateHabitRecordsRequest\x1a-.memos.api.v1.BatchUpdateHabitRecordsResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/habitRecords:batchUpdate\x12\x7f\n" +
+	"\x10ListHabitRecords\x12%.memos.api.v1.ListHabitRecordsRequest\x1a&.memos.api.v1.ListHabitRecordsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/habitRecords\x12\x90\x01\n" +
 	"\x16SetActionMemoRelations\x12+.memos.api.v1.SetActionMemoRelationsRequest\x1a\x16.google.protobuf.Empty\"1\x82\xd3\xe4\x93\x02+:\x01*2&/api/v1/{name=actions/*}/memoRelations\x12\xa6\x01\n" +
 	"\x17ListActionMemoRelations\x12,.memos.api.v1.ListActionMemoRelationsRequest\x1a-.memos.api.v1.ListActionMemoRelationsResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/v1/{name=actions/*}/memoRelations\x12\x88\x01\n" +
 	"\x16SetMemoActionRelations\x12+.memos.api.v1.SetMemoActionRelationsRequest\x1a\x16.google.protobuf.Empty\")\x82\xd3\xe4\x93\x02#:\x01*2\x1e/api/v1/{name=memos/*}/actions\x12\x9e\x01\n" +
@@ -1643,97 +2326,124 @@ func file_api_v1_action_service_proto_rawDescGZIP() []byte {
 	return file_api_v1_action_service_proto_rawDescData
 }
 
-var file_api_v1_action_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_v1_action_service_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_api_v1_action_service_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_api_v1_action_service_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_api_v1_action_service_proto_goTypes = []any{
 	(ActionType)(0),                         // 0: memos.api.v1.ActionType
 	(ActionStatus)(0),                       // 1: memos.api.v1.ActionStatus
-	(*GoalPayload)(nil),                     // 2: memos.api.v1.GoalPayload
-	(*GoalRecord)(nil),                      // 3: memos.api.v1.GoalRecord
-	(*MemoReference)(nil),                   // 4: memos.api.v1.MemoReference
-	(*Action)(nil),                          // 5: memos.api.v1.Action
-	(*CreateActionRequest)(nil),             // 6: memos.api.v1.CreateActionRequest
-	(*ListActionsRequest)(nil),              // 7: memos.api.v1.ListActionsRequest
-	(*ListActionsResponse)(nil),             // 8: memos.api.v1.ListActionsResponse
-	(*GetActionRequest)(nil),                // 9: memos.api.v1.GetActionRequest
-	(*UpdateActionRequest)(nil),             // 10: memos.api.v1.UpdateActionRequest
-	(*DeleteActionRequest)(nil),             // 11: memos.api.v1.DeleteActionRequest
-	(*CompleteActionRequest)(nil),           // 12: memos.api.v1.CompleteActionRequest
-	(*ReopenActionRequest)(nil),             // 13: memos.api.v1.ReopenActionRequest
-	(*TerminateGoalRequest)(nil),            // 14: memos.api.v1.TerminateGoalRequest
-	(*MoveActionRequest)(nil),               // 15: memos.api.v1.MoveActionRequest
-	(*CreateGoalRecordRequest)(nil),         // 16: memos.api.v1.CreateGoalRecordRequest
-	(*ListGoalRecordsRequest)(nil),          // 17: memos.api.v1.ListGoalRecordsRequest
-	(*ListGoalRecordsResponse)(nil),         // 18: memos.api.v1.ListGoalRecordsResponse
-	(*SetActionMemoRelationsRequest)(nil),   // 19: memos.api.v1.SetActionMemoRelationsRequest
-	(*ListActionMemoRelationsRequest)(nil),  // 20: memos.api.v1.ListActionMemoRelationsRequest
-	(*ListActionMemoRelationsResponse)(nil), // 21: memos.api.v1.ListActionMemoRelationsResponse
-	(*SetMemoActionRelationsRequest)(nil),   // 22: memos.api.v1.SetMemoActionRelationsRequest
-	(*ListMemoActionRelationsRequest)(nil),  // 23: memos.api.v1.ListMemoActionRelationsRequest
-	(*ListMemoActionRelationsResponse)(nil), // 24: memos.api.v1.ListMemoActionRelationsResponse
-	(*timestamppb.Timestamp)(nil),           // 25: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),           // 26: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),                   // 27: google.protobuf.Empty
+	(HabitScheduleType)(0),                  // 2: memos.api.v1.HabitScheduleType
+	(HabitRecordStatus)(0),                  // 3: memos.api.v1.HabitRecordStatus
+	(GoalRecordOperation)(0),                // 4: memos.api.v1.GoalRecordOperation
+	(*GoalPayload)(nil),                     // 5: memos.api.v1.GoalPayload
+	(*HabitPayload)(nil),                    // 6: memos.api.v1.HabitPayload
+	(*HabitRecord)(nil),                     // 7: memos.api.v1.HabitRecord
+	(*ActionStatusHistory)(nil),             // 8: memos.api.v1.ActionStatusHistory
+	(*GoalRecord)(nil),                      // 9: memos.api.v1.GoalRecord
+	(*MemoReference)(nil),                   // 10: memos.api.v1.MemoReference
+	(*Action)(nil),                          // 11: memos.api.v1.Action
+	(*CreateActionRequest)(nil),             // 12: memos.api.v1.CreateActionRequest
+	(*ListActionsRequest)(nil),              // 13: memos.api.v1.ListActionsRequest
+	(*ListActionsResponse)(nil),             // 14: memos.api.v1.ListActionsResponse
+	(*GetActionRequest)(nil),                // 15: memos.api.v1.GetActionRequest
+	(*UpdateActionRequest)(nil),             // 16: memos.api.v1.UpdateActionRequest
+	(*DeleteActionRequest)(nil),             // 17: memos.api.v1.DeleteActionRequest
+	(*CompleteActionRequest)(nil),           // 18: memos.api.v1.CompleteActionRequest
+	(*ReopenActionRequest)(nil),             // 19: memos.api.v1.ReopenActionRequest
+	(*TerminateActionRequest)(nil),          // 20: memos.api.v1.TerminateActionRequest
+	(*MoveActionRequest)(nil),               // 21: memos.api.v1.MoveActionRequest
+	(*CreateGoalRecordRequest)(nil),         // 22: memos.api.v1.CreateGoalRecordRequest
+	(*ListGoalRecordsRequest)(nil),          // 23: memos.api.v1.ListGoalRecordsRequest
+	(*ListGoalRecordsResponse)(nil),         // 24: memos.api.v1.ListGoalRecordsResponse
+	(*BatchUpdateHabitRecordsRequest)(nil),  // 25: memos.api.v1.BatchUpdateHabitRecordsRequest
+	(*BatchUpdateHabitRecordsResponse)(nil), // 26: memos.api.v1.BatchUpdateHabitRecordsResponse
+	(*ListHabitRecordsRequest)(nil),         // 27: memos.api.v1.ListHabitRecordsRequest
+	(*ListHabitRecordsResponse)(nil),        // 28: memos.api.v1.ListHabitRecordsResponse
+	(*SetActionMemoRelationsRequest)(nil),   // 29: memos.api.v1.SetActionMemoRelationsRequest
+	(*ListActionMemoRelationsRequest)(nil),  // 30: memos.api.v1.ListActionMemoRelationsRequest
+	(*ListActionMemoRelationsResponse)(nil), // 31: memos.api.v1.ListActionMemoRelationsResponse
+	(*SetMemoActionRelationsRequest)(nil),   // 32: memos.api.v1.SetMemoActionRelationsRequest
+	(*ListMemoActionRelationsRequest)(nil),  // 33: memos.api.v1.ListMemoActionRelationsRequest
+	(*ListMemoActionRelationsResponse)(nil), // 34: memos.api.v1.ListMemoActionRelationsResponse
+	(*timestamppb.Timestamp)(nil),           // 35: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),           // 36: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),                   // 37: google.protobuf.Empty
 }
 var file_api_v1_action_service_proto_depIdxs = []int32{
-	25, // 0: memos.api.v1.GoalRecord.recorded_time:type_name -> google.protobuf.Timestamp
-	25, // 1: memos.api.v1.GoalRecord.create_time:type_name -> google.protobuf.Timestamp
-	25, // 2: memos.api.v1.MemoReference.update_time:type_name -> google.protobuf.Timestamp
-	0,  // 3: memos.api.v1.Action.type:type_name -> memos.api.v1.ActionType
-	1,  // 4: memos.api.v1.Action.status:type_name -> memos.api.v1.ActionStatus
-	25, // 5: memos.api.v1.Action.deadline:type_name -> google.protobuf.Timestamp
-	2,  // 6: memos.api.v1.Action.goal:type_name -> memos.api.v1.GoalPayload
-	5,  // 7: memos.api.v1.Action.children:type_name -> memos.api.v1.Action
-	25, // 8: memos.api.v1.Action.create_time:type_name -> google.protobuf.Timestamp
-	25, // 9: memos.api.v1.Action.update_time:type_name -> google.protobuf.Timestamp
-	25, // 10: memos.api.v1.Action.complete_time:type_name -> google.protobuf.Timestamp
-	25, // 11: memos.api.v1.Action.terminate_time:type_name -> google.protobuf.Timestamp
-	3,  // 12: memos.api.v1.Action.goal_records:type_name -> memos.api.v1.GoalRecord
-	5,  // 13: memos.api.v1.CreateActionRequest.action:type_name -> memos.api.v1.Action
-	0,  // 14: memos.api.v1.ListActionsRequest.type:type_name -> memos.api.v1.ActionType
-	1,  // 15: memos.api.v1.ListActionsRequest.statuses:type_name -> memos.api.v1.ActionStatus
-	5,  // 16: memos.api.v1.ListActionsResponse.actions:type_name -> memos.api.v1.Action
-	5,  // 17: memos.api.v1.UpdateActionRequest.action:type_name -> memos.api.v1.Action
-	26, // 18: memos.api.v1.UpdateActionRequest.update_mask:type_name -> google.protobuf.FieldMask
-	3,  // 19: memos.api.v1.CreateGoalRecordRequest.goal_record:type_name -> memos.api.v1.GoalRecord
-	3,  // 20: memos.api.v1.ListGoalRecordsResponse.goal_records:type_name -> memos.api.v1.GoalRecord
-	4,  // 21: memos.api.v1.ListActionMemoRelationsResponse.memos:type_name -> memos.api.v1.MemoReference
-	5,  // 22: memos.api.v1.ListMemoActionRelationsResponse.actions:type_name -> memos.api.v1.Action
-	6,  // 23: memos.api.v1.ActionService.CreateAction:input_type -> memos.api.v1.CreateActionRequest
-	7,  // 24: memos.api.v1.ActionService.ListActions:input_type -> memos.api.v1.ListActionsRequest
-	9,  // 25: memos.api.v1.ActionService.GetAction:input_type -> memos.api.v1.GetActionRequest
-	10, // 26: memos.api.v1.ActionService.UpdateAction:input_type -> memos.api.v1.UpdateActionRequest
-	11, // 27: memos.api.v1.ActionService.DeleteAction:input_type -> memos.api.v1.DeleteActionRequest
-	12, // 28: memos.api.v1.ActionService.CompleteAction:input_type -> memos.api.v1.CompleteActionRequest
-	13, // 29: memos.api.v1.ActionService.ReopenAction:input_type -> memos.api.v1.ReopenActionRequest
-	14, // 30: memos.api.v1.ActionService.TerminateGoal:input_type -> memos.api.v1.TerminateGoalRequest
-	15, // 31: memos.api.v1.ActionService.MoveAction:input_type -> memos.api.v1.MoveActionRequest
-	16, // 32: memos.api.v1.ActionService.CreateGoalRecord:input_type -> memos.api.v1.CreateGoalRecordRequest
-	17, // 33: memos.api.v1.ActionService.ListGoalRecords:input_type -> memos.api.v1.ListGoalRecordsRequest
-	19, // 34: memos.api.v1.ActionService.SetActionMemoRelations:input_type -> memos.api.v1.SetActionMemoRelationsRequest
-	20, // 35: memos.api.v1.ActionService.ListActionMemoRelations:input_type -> memos.api.v1.ListActionMemoRelationsRequest
-	22, // 36: memos.api.v1.ActionService.SetMemoActionRelations:input_type -> memos.api.v1.SetMemoActionRelationsRequest
-	23, // 37: memos.api.v1.ActionService.ListMemoActionRelations:input_type -> memos.api.v1.ListMemoActionRelationsRequest
-	5,  // 38: memos.api.v1.ActionService.CreateAction:output_type -> memos.api.v1.Action
-	8,  // 39: memos.api.v1.ActionService.ListActions:output_type -> memos.api.v1.ListActionsResponse
-	5,  // 40: memos.api.v1.ActionService.GetAction:output_type -> memos.api.v1.Action
-	5,  // 41: memos.api.v1.ActionService.UpdateAction:output_type -> memos.api.v1.Action
-	27, // 42: memos.api.v1.ActionService.DeleteAction:output_type -> google.protobuf.Empty
-	5,  // 43: memos.api.v1.ActionService.CompleteAction:output_type -> memos.api.v1.Action
-	5,  // 44: memos.api.v1.ActionService.ReopenAction:output_type -> memos.api.v1.Action
-	5,  // 45: memos.api.v1.ActionService.TerminateGoal:output_type -> memos.api.v1.Action
-	5,  // 46: memos.api.v1.ActionService.MoveAction:output_type -> memos.api.v1.Action
-	3,  // 47: memos.api.v1.ActionService.CreateGoalRecord:output_type -> memos.api.v1.GoalRecord
-	18, // 48: memos.api.v1.ActionService.ListGoalRecords:output_type -> memos.api.v1.ListGoalRecordsResponse
-	27, // 49: memos.api.v1.ActionService.SetActionMemoRelations:output_type -> google.protobuf.Empty
-	21, // 50: memos.api.v1.ActionService.ListActionMemoRelations:output_type -> memos.api.v1.ListActionMemoRelationsResponse
-	27, // 51: memos.api.v1.ActionService.SetMemoActionRelations:output_type -> google.protobuf.Empty
-	24, // 52: memos.api.v1.ActionService.ListMemoActionRelations:output_type -> memos.api.v1.ListMemoActionRelationsResponse
-	38, // [38:53] is the sub-list for method output_type
-	23, // [23:38] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	2,  // 0: memos.api.v1.HabitPayload.schedule_type:type_name -> memos.api.v1.HabitScheduleType
+	3,  // 1: memos.api.v1.HabitRecord.status:type_name -> memos.api.v1.HabitRecordStatus
+	35, // 2: memos.api.v1.HabitRecord.create_time:type_name -> google.protobuf.Timestamp
+	35, // 3: memos.api.v1.HabitRecord.update_time:type_name -> google.protobuf.Timestamp
+	1,  // 4: memos.api.v1.ActionStatusHistory.from_status:type_name -> memos.api.v1.ActionStatus
+	1,  // 5: memos.api.v1.ActionStatusHistory.to_status:type_name -> memos.api.v1.ActionStatus
+	35, // 6: memos.api.v1.ActionStatusHistory.create_time:type_name -> google.protobuf.Timestamp
+	35, // 7: memos.api.v1.GoalRecord.recorded_time:type_name -> google.protobuf.Timestamp
+	35, // 8: memos.api.v1.GoalRecord.create_time:type_name -> google.protobuf.Timestamp
+	4,  // 9: memos.api.v1.GoalRecord.operation:type_name -> memos.api.v1.GoalRecordOperation
+	35, // 10: memos.api.v1.MemoReference.update_time:type_name -> google.protobuf.Timestamp
+	0,  // 11: memos.api.v1.Action.type:type_name -> memos.api.v1.ActionType
+	1,  // 12: memos.api.v1.Action.status:type_name -> memos.api.v1.ActionStatus
+	35, // 13: memos.api.v1.Action.deadline:type_name -> google.protobuf.Timestamp
+	5,  // 14: memos.api.v1.Action.goal:type_name -> memos.api.v1.GoalPayload
+	11, // 15: memos.api.v1.Action.children:type_name -> memos.api.v1.Action
+	35, // 16: memos.api.v1.Action.create_time:type_name -> google.protobuf.Timestamp
+	35, // 17: memos.api.v1.Action.update_time:type_name -> google.protobuf.Timestamp
+	35, // 18: memos.api.v1.Action.complete_time:type_name -> google.protobuf.Timestamp
+	35, // 19: memos.api.v1.Action.terminate_time:type_name -> google.protobuf.Timestamp
+	9,  // 20: memos.api.v1.Action.goal_records:type_name -> memos.api.v1.GoalRecord
+	6,  // 21: memos.api.v1.Action.habit:type_name -> memos.api.v1.HabitPayload
+	8,  // 22: memos.api.v1.Action.status_history:type_name -> memos.api.v1.ActionStatusHistory
+	11, // 23: memos.api.v1.CreateActionRequest.action:type_name -> memos.api.v1.Action
+	0,  // 24: memos.api.v1.ListActionsRequest.type:type_name -> memos.api.v1.ActionType
+	1,  // 25: memos.api.v1.ListActionsRequest.statuses:type_name -> memos.api.v1.ActionStatus
+	11, // 26: memos.api.v1.ListActionsResponse.actions:type_name -> memos.api.v1.Action
+	11, // 27: memos.api.v1.UpdateActionRequest.action:type_name -> memos.api.v1.Action
+	36, // 28: memos.api.v1.UpdateActionRequest.update_mask:type_name -> google.protobuf.FieldMask
+	9,  // 29: memos.api.v1.CreateGoalRecordRequest.goal_record:type_name -> memos.api.v1.GoalRecord
+	9,  // 30: memos.api.v1.ListGoalRecordsResponse.goal_records:type_name -> memos.api.v1.GoalRecord
+	7,  // 31: memos.api.v1.BatchUpdateHabitRecordsRequest.habit_records:type_name -> memos.api.v1.HabitRecord
+	7,  // 32: memos.api.v1.BatchUpdateHabitRecordsResponse.habit_records:type_name -> memos.api.v1.HabitRecord
+	7,  // 33: memos.api.v1.ListHabitRecordsResponse.habit_records:type_name -> memos.api.v1.HabitRecord
+	10, // 34: memos.api.v1.ListActionMemoRelationsResponse.memos:type_name -> memos.api.v1.MemoReference
+	11, // 35: memos.api.v1.ListMemoActionRelationsResponse.actions:type_name -> memos.api.v1.Action
+	12, // 36: memos.api.v1.ActionService.CreateAction:input_type -> memos.api.v1.CreateActionRequest
+	13, // 37: memos.api.v1.ActionService.ListActions:input_type -> memos.api.v1.ListActionsRequest
+	15, // 38: memos.api.v1.ActionService.GetAction:input_type -> memos.api.v1.GetActionRequest
+	16, // 39: memos.api.v1.ActionService.UpdateAction:input_type -> memos.api.v1.UpdateActionRequest
+	17, // 40: memos.api.v1.ActionService.DeleteAction:input_type -> memos.api.v1.DeleteActionRequest
+	18, // 41: memos.api.v1.ActionService.CompleteAction:input_type -> memos.api.v1.CompleteActionRequest
+	19, // 42: memos.api.v1.ActionService.ReopenAction:input_type -> memos.api.v1.ReopenActionRequest
+	20, // 43: memos.api.v1.ActionService.TerminateAction:input_type -> memos.api.v1.TerminateActionRequest
+	21, // 44: memos.api.v1.ActionService.MoveAction:input_type -> memos.api.v1.MoveActionRequest
+	22, // 45: memos.api.v1.ActionService.CreateGoalRecord:input_type -> memos.api.v1.CreateGoalRecordRequest
+	23, // 46: memos.api.v1.ActionService.ListGoalRecords:input_type -> memos.api.v1.ListGoalRecordsRequest
+	25, // 47: memos.api.v1.ActionService.BatchUpdateHabitRecords:input_type -> memos.api.v1.BatchUpdateHabitRecordsRequest
+	27, // 48: memos.api.v1.ActionService.ListHabitRecords:input_type -> memos.api.v1.ListHabitRecordsRequest
+	29, // 49: memos.api.v1.ActionService.SetActionMemoRelations:input_type -> memos.api.v1.SetActionMemoRelationsRequest
+	30, // 50: memos.api.v1.ActionService.ListActionMemoRelations:input_type -> memos.api.v1.ListActionMemoRelationsRequest
+	32, // 51: memos.api.v1.ActionService.SetMemoActionRelations:input_type -> memos.api.v1.SetMemoActionRelationsRequest
+	33, // 52: memos.api.v1.ActionService.ListMemoActionRelations:input_type -> memos.api.v1.ListMemoActionRelationsRequest
+	11, // 53: memos.api.v1.ActionService.CreateAction:output_type -> memos.api.v1.Action
+	14, // 54: memos.api.v1.ActionService.ListActions:output_type -> memos.api.v1.ListActionsResponse
+	11, // 55: memos.api.v1.ActionService.GetAction:output_type -> memos.api.v1.Action
+	11, // 56: memos.api.v1.ActionService.UpdateAction:output_type -> memos.api.v1.Action
+	37, // 57: memos.api.v1.ActionService.DeleteAction:output_type -> google.protobuf.Empty
+	11, // 58: memos.api.v1.ActionService.CompleteAction:output_type -> memos.api.v1.Action
+	11, // 59: memos.api.v1.ActionService.ReopenAction:output_type -> memos.api.v1.Action
+	11, // 60: memos.api.v1.ActionService.TerminateAction:output_type -> memos.api.v1.Action
+	11, // 61: memos.api.v1.ActionService.MoveAction:output_type -> memos.api.v1.Action
+	9,  // 62: memos.api.v1.ActionService.CreateGoalRecord:output_type -> memos.api.v1.GoalRecord
+	24, // 63: memos.api.v1.ActionService.ListGoalRecords:output_type -> memos.api.v1.ListGoalRecordsResponse
+	26, // 64: memos.api.v1.ActionService.BatchUpdateHabitRecords:output_type -> memos.api.v1.BatchUpdateHabitRecordsResponse
+	28, // 65: memos.api.v1.ActionService.ListHabitRecords:output_type -> memos.api.v1.ListHabitRecordsResponse
+	37, // 66: memos.api.v1.ActionService.SetActionMemoRelations:output_type -> google.protobuf.Empty
+	31, // 67: memos.api.v1.ActionService.ListActionMemoRelations:output_type -> memos.api.v1.ListActionMemoRelationsResponse
+	37, // 68: memos.api.v1.ActionService.SetMemoActionRelations:output_type -> google.protobuf.Empty
+	34, // 69: memos.api.v1.ActionService.ListMemoActionRelations:output_type -> memos.api.v1.ListMemoActionRelationsResponse
+	53, // [53:70] is the sub-list for method output_type
+	36, // [36:53] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_action_service_proto_init() }
@@ -1741,16 +2451,17 @@ func file_api_v1_action_service_proto_init() {
 	if File_api_v1_action_service_proto != nil {
 		return
 	}
-	file_api_v1_action_service_proto_msgTypes[3].OneofWrappers = []any{}
-	file_api_v1_action_service_proto_msgTypes[5].OneofWrappers = []any{}
-	file_api_v1_action_service_proto_msgTypes[13].OneofWrappers = []any{}
+	file_api_v1_action_service_proto_msgTypes[4].OneofWrappers = []any{}
+	file_api_v1_action_service_proto_msgTypes[6].OneofWrappers = []any{}
+	file_api_v1_action_service_proto_msgTypes[8].OneofWrappers = []any{}
+	file_api_v1_action_service_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_action_service_proto_rawDesc), len(file_api_v1_action_service_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   23,
+			NumEnums:      5,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
