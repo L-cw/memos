@@ -1,6 +1,7 @@
 import { Tooltip } from "@mui/joy";
 import dayjs from "dayjs";
 import {
+  BanIcon,
   CalendarCheck2Icon,
   CalendarDaysIcon,
   ChevronDownIcon,
@@ -44,10 +45,10 @@ const actionViewLabelKeys: Record<ActionView, Translations> = {
 };
 
 const viewTitle: Record<ActionView, { title: string; description: string }> = {
-  today: { title: "Today", description: "今天计划完成的 Todo" },
+  today: { title: "Today", description: "今天需处理及今天完成或放弃的 Todo" },
   upcoming: { title: "Upcoming", description: "接下来有计划日期的 Action" },
   all: { title: "All", description: "全部进行中的 Action" },
-  completed: { title: "Completed", description: "已完成和已终止的 Action" },
+  completed: { title: "Completed", description: "已完成和已放弃的 Action" },
   projects: { title: "Projects", description: "进行中的项目与拆解进度" },
   goals: { title: "Goals", description: "进行中的数值目标" },
   habits: { title: "习惯", description: "长期坚持与打卡记录" },
@@ -71,7 +72,7 @@ const getActionSummary = (action: ActionItem) => {
   }
   if (action.type === "HABIT") return habitScheduleLabel(action);
   if (action.status === "DONE") return "已完成";
-  if (action.status === "TERMINATED") return "已终止";
+  if (action.status === "TERMINATED") return "已放弃";
   return action.status === "IN_PROGRESS" ? "进行中" : "待开始";
 };
 
@@ -124,9 +125,8 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
   const selectAction = useActionStore((state) => state.selectAction);
   const toggleComplete = useActionStore((state) => state.toggleComplete);
   const togglePin = useActionStore((state) => state.togglePin);
-  const canComplete = action.type === "TASK";
   const isDone = action.status === "DONE";
-  const isTerminated = action.status === "TERMINATED";
+  const isAbandoned = action.status === "TERMINATED";
   const project = projectProgress(action);
   const goalPercent = action.goal ? Math.min(100, Math.max(0, (action.goal.current / action.goal.target) * 100)) : 0;
   const sortedChildren = sortActionChildren(action.children);
@@ -150,23 +150,28 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
     <article
       className={cn(
         "border-b border-zinc-100 last:border-b-0 dark:border-zinc-800",
-        (isDone || isTerminated) && "bg-zinc-50/60 dark:bg-zinc-900/50",
+        (isDone || isAbandoned) && "bg-zinc-50/60 dark:bg-zinc-900/50",
       )}
     >
       <div className="grid min-h-[74px] grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-2 px-3 py-3 sm:grid-cols-[36px_minmax(0,1fr)_auto_auto] sm:px-4">
         <button
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded text-zinc-400 transition-colors",
-            canComplete ? "hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800" : "cursor-default",
+            "hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800",
             isDone && "text-green-600 dark:text-green-400",
-            isTerminated && "text-red-500",
+            isAbandoned && "text-zinc-400 dark:text-zinc-500",
           )}
           type="button"
-          disabled={!canComplete || isTerminated}
-          aria-label={isDone ? `重新打开 ${action.title}` : `完成 ${action.title}`}
+          aria-label={isDone || isAbandoned ? `重新打开 ${action.title}` : `完成 ${action.title}`}
           onClick={handleComplete}
         >
-          {isDone ? <CircleCheckBigIcon className="h-5 w-5" /> : <CircleIcon className="h-5 w-5" />}
+          {isDone ? (
+            <CircleCheckBigIcon className="h-5 w-5" />
+          ) : isAbandoned ? (
+            <BanIcon className="h-5 w-5" />
+          ) : (
+            <CircleIcon className="h-5 w-5" />
+          )}
         </button>
 
         <button className="min-w-0 text-left" type="button" onClick={() => selectAction(action.uid)}>
@@ -180,9 +185,9 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
             >
               {action.title}
             </h3>
-            {isTerminated && (
-              <span className="shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-[11px] font-medium text-red-600 dark:bg-red-950/30 dark:text-red-400">
-                已终止
+            {isAbandoned && (
+              <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                已放弃
               </span>
             )}
           </div>
@@ -269,7 +274,7 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
               <button
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 type="button"
-                aria-label={child.status === "DONE" ? `重新打开 ${child.title}` : `完成 ${child.title}`}
+                aria-label={["DONE", "TERMINATED"].includes(child.status) ? `重新打开 ${child.title}` : `完成 ${child.title}`}
                 onClick={async () => {
                   const result = await toggleComplete(child.uid);
                   result.ok ? toast.success(result.message) : toast.error(result.message);
@@ -277,6 +282,8 @@ const ActionRow = ({ action, expanded, onToggleExpanded }: { action: ActionItem;
               >
                 {child.status === "DONE" ? (
                   <CircleCheckBigIcon className="h-4 w-4 text-green-600" />
+                ) : child.status === "TERMINATED" ? (
+                  <BanIcon className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                 ) : (
                   <CircleIcon className="h-4 w-4 text-zinc-400" />
                 )}
@@ -312,6 +319,23 @@ const Actions = () => {
   const [habitCheckInOpen, setHabitCheckInOpen] = useState(false);
   const view: ActionView = isActionView(params.view) ? params.view : "today";
   const filteredActions = useMemo(() => filterActionsByView(actions, view), [actions, view]);
+  const todayPendingActions = useMemo(
+    () => (view === "today" ? filteredActions.filter((action) => ["TODO", "IN_PROGRESS"].includes(action.status)) : []),
+    [filteredActions, view],
+  );
+  const todayFinishedActions = useMemo(
+    () =>
+      view === "today"
+        ? filteredActions
+            .filter((action) => ["DONE", "TERMINATED"].includes(action.status))
+            .sort((left, right) => {
+              const leftTime = left.status === "DONE" ? left.completedAt : left.terminatedAt;
+              const rightTime = right.status === "DONE" ? right.completedAt : right.terminatedAt;
+              return (rightTime ? dayjs(rightTime).valueOf() : 0) - (leftTime ? dayjs(leftTime).valueOf() : 0);
+            })
+        : [],
+    [filteredActions, view],
+  );
   const pinnedActions = useMemo(
     () =>
       flattenActions(actions)
@@ -337,6 +361,22 @@ const Actions = () => {
   useEffect(() => {
     void initialize();
   }, [initialize]);
+
+  const renderActionRows = (items: ActionItem[]) =>
+    items.map((action) => (
+      <ActionRow
+        action={action}
+        expanded={expanded.has(action.uid)}
+        onToggleExpanded={() =>
+          setExpanded((current) => {
+            const next = new Set(current);
+            next.has(action.uid) ? next.delete(action.uid) : next.add(action.uid);
+            return next;
+          })
+        }
+        key={action.uid}
+      />
+    ));
 
   return (
     <section className="w-full max-w-6xl pb-24 sm:px-6 sm:pt-6">
@@ -432,20 +472,26 @@ const Actions = () => {
               </button>
             </div>
           ) : filteredActions.length > 0 ? (
-            filteredActions.map((action) => (
-              <ActionRow
-                action={action}
-                expanded={expanded.has(action.uid)}
-                onToggleExpanded={() =>
-                  setExpanded((current) => {
-                    const next = new Set(current);
-                    next.has(action.uid) ? next.delete(action.uid) : next.add(action.uid);
-                    return next;
-                  })
-                }
-                key={action.uid}
-              />
-            ))
+            view === "today" ? (
+              <>
+                {todayPendingActions.length > 0 && (
+                  <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-xs font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950/40">
+                    <span>待完成</span>
+                    <span className="tabular-nums">{todayPendingActions.length}</span>
+                  </div>
+                )}
+                {renderActionRows(todayPendingActions)}
+                {todayFinishedActions.length > 0 && (
+                  <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-xs font-medium text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950/40">
+                    <span>已完成与已放弃</span>
+                    <span className="tabular-nums">{todayFinishedActions.length}</span>
+                  </div>
+                )}
+                {renderActionRows(todayFinishedActions)}
+              </>
+            ) : (
+              renderActionRows(filteredActions)
+            )
           ) : (
             <div className="flex min-h-56 flex-col items-center justify-center px-6 text-center">
               <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800">

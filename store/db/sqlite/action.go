@@ -369,6 +369,65 @@ func (d *DB) TransitionActionStatus(ctx context.Context, transition *store.Trans
 	return history, nil
 }
 
+func (d *DB) CompleteActionTree(ctx context.Context, creatorID int32, actionID int32, effectiveDate string, createdTs int64) error {
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	rows, err := tx.QueryContext(ctx, `
+		WITH RECURSIVE descendants(id, status) AS (
+			SELECT id, status FROM action
+			WHERE id = ? AND creator_id = ? AND row_status = 'NORMAL'
+			UNION ALL
+			SELECT child.id, child.status
+			FROM action child
+			JOIN descendants parent ON child.parent_id = parent.id
+			WHERE child.creator_id = ? AND child.row_status = 'NORMAL' AND parent.status != 'TERMINATED'
+		)
+		SELECT id, status FROM descendants`, actionID, creatorID, creatorID)
+	if err != nil {
+		return err
+	}
+	type actionStatus struct {
+		id     int32
+		status store.ActionStatus
+	}
+	actions := []actionStatus{}
+	for rows.Next() {
+		item := actionStatus{}
+		if err := rows.Scan(&item.id, &item.status); err != nil {
+			rows.Close()
+			return err
+		}
+		actions = append(actions, item)
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if len(actions) == 0 {
+		return store.ErrActionNotFound
+	}
+
+	for _, action := range actions {
+		if action.status != store.ActionStatusTodo && action.status != store.ActionStatusInProgress {
+			continue
+		}
+		if _, err := transitionActionStatusTx(ctx, tx, &store.TransitionActionStatus{
+			ActionID: action.id, CreatorID: creatorID,
+			FromStatus: action.status, ToStatus: store.ActionStatusDone,
+			EffectiveDate: effectiveDate, CreatedTs: createdTs,
+		}); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 func (d *DB) ListActionStatusHistories(ctx context.Context, find *store.FindActionStatusHistory) ([]*store.ActionStatusHistory, error) {
 	where, args := []string{"1 = 1"}, []any{}
 	if find.ActionID != nil {

@@ -117,9 +117,6 @@ func (s *APIV1Service) CreateAction(ctx context.Context, request *v1pb.CreateAct
 	if err != nil {
 		return nil, actionStoreError("create action", err)
 	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, created.ParentID); err != nil {
-		return nil, err
-	}
 	return s.getActionMessage(ctx, user.ID, created.UID)
 }
 
@@ -266,9 +263,6 @@ func (s *APIV1Service) DeleteAction(ctx context.Context, request *v1pb.DeleteAct
 	if err := s.Store.ArchiveActionTree(ctx, user.ID, action.ID); err != nil {
 		return nil, actionStoreError("delete action", err)
 	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, action.ParentID); err != nil {
-		return nil, err
-	}
 	return &emptypb.Empty{}, nil
 }
 
@@ -281,26 +275,23 @@ func (s *APIV1Service) CompleteAction(ctx context.Context, request *v1pb.Complet
 	if err != nil {
 		return nil, err
 	}
-	if action.Type != store.ActionTypeTask {
-		return nil, status.Error(codes.FailedPrecondition, "only Todo actions can be completed manually")
-	}
-	if action.Status == store.ActionStatusTerminated {
-		return nil, status.Error(codes.FailedPrecondition, "terminated Action cannot be completed")
+	if err := validateActionCompletion(action); err != nil {
+		return nil, err
 	}
 	if action.Status != store.ActionStatusDone {
 		now := time.Now().Unix()
-		if _, err := s.Store.TransitionActionStatus(ctx, &store.TransitionActionStatus{
-			ActionID: action.ID, CreatorID: user.ID,
-			FromStatus: action.Status, ToStatus: store.ActionStatusDone,
-			EffectiveDate: time.Unix(now, 0).Format("2006-01-02"), CreatedTs: now,
-		}); err != nil {
+		if err := s.Store.CompleteActionTree(ctx, user.ID, action.ID, time.Unix(now, 0).Format("2006-01-02"), now); err != nil {
 			return nil, actionStoreError("complete action", err)
-		}
-		if err := s.recalculateProjectAncestors(ctx, user.ID, action.ParentID); err != nil {
-			return nil, err
 		}
 	}
 	return s.getActionMessage(ctx, user.ID, action.UID)
+}
+
+func validateActionCompletion(action *store.Action) error {
+	if action.Status == store.ActionStatusTerminated {
+		return status.Error(codes.FailedPrecondition, "abandoned Action cannot be completed")
+	}
+	return nil
 }
 
 func (s *APIV1Service) ReopenAction(ctx context.Context, request *v1pb.ReopenActionRequest) (*v1pb.Action, error) {
@@ -315,9 +306,6 @@ func (s *APIV1Service) ReopenAction(ctx context.Context, request *v1pb.ReopenAct
 	effectiveDate, err := resolveActionEffectiveDate(request.EffectiveDate)
 	if err != nil {
 		return nil, err
-	}
-	if action.Type == store.ActionTypeProject && action.Status != store.ActionStatusTerminated {
-		return nil, status.Error(codes.FailedPrecondition, "Project status is calculated from its descendants")
 	}
 	if action.Status != store.ActionStatusDone && action.Status != store.ActionStatusTerminated {
 		return nil, status.Error(codes.FailedPrecondition, "only completed actions can be reopened")
@@ -337,12 +325,6 @@ func (s *APIV1Service) ReopenAction(ctx context.Context, request *v1pb.ReopenAct
 				break
 			}
 		}
-		if action.Type == store.ActionTypeProject {
-			nextStatus, err = s.calculateProjectStatus(ctx, user.ID, action.ID)
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 	now := time.Now().Unix()
 	if _, err := s.Store.TransitionActionStatus(ctx, &store.TransitionActionStatus{
@@ -351,9 +333,6 @@ func (s *APIV1Service) ReopenAction(ctx context.Context, request *v1pb.ReopenAct
 		EffectiveDate: effectiveDate, CreatedTs: now,
 	}); err != nil {
 		return nil, actionStoreError("reopen action", err)
-	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, action.ParentID); err != nil {
-		return nil, err
 	}
 	return s.getActionMessage(ctx, user.ID, action.UID)
 }
@@ -386,9 +365,6 @@ func (s *APIV1Service) TerminateAction(ctx context.Context, request *v1pb.Termin
 	}); err != nil {
 		return nil, actionStoreError("terminate Action", err)
 	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, action.ParentID); err != nil {
-		return nil, err
-	}
 	return s.getActionMessage(ctx, user.ID, action.UID)
 }
 
@@ -408,7 +384,6 @@ func (s *APIV1Service) MoveAction(ctx context.Context, request *v1pb.MoveActionR
 	if err != nil {
 		return nil, err
 	}
-	oldParentID := action.ParentID
 	if action.Type == store.ActionTypeHabit && request.Parent != nil && strings.TrimSpace(request.GetParent()) != "" {
 		return nil, status.Error(codes.InvalidArgument, "Habit actions cannot have a parent")
 	}
@@ -431,12 +406,6 @@ func (s *APIV1Service) MoveAction(ctx context.Context, request *v1pb.MoveActionR
 	}
 	if err := s.Store.MoveAction(ctx, &store.MoveAction{ID: action.ID, CreatorID: user.ID, ParentID: parentID, SortOrder: request.SortOrder}); err != nil {
 		return nil, actionStoreError("move action", err)
-	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, oldParentID); err != nil {
-		return nil, err
-	}
-	if err := s.recalculateProjectAncestors(ctx, user.ID, parentID); err != nil {
-		return nil, err
 	}
 	return s.getActionMessage(ctx, user.ID, action.UID)
 }
@@ -467,18 +436,13 @@ func (s *APIV1Service) CreateGoalRecord(ctx context.Context, request *v1pb.Creat
 	if err != nil {
 		return nil, err
 	}
-	record, updatedAction, err := s.Store.CreateActionGoalRecord(ctx, &store.ActionGoalRecord{
+	record, _, err := s.Store.CreateActionGoalRecord(ctx, &store.ActionGoalRecord{
 		UID: shortuuid.New(), ActionID: action.ID, CreatorID: user.ID, Delta: request.GoalRecord.Delta,
 		Operation: operation, OverwriteValue: request.GoalRecord.OverwriteValue,
 		Note: strings.TrimSpace(request.GoalRecord.Note), RecordedTs: recordedTs,
 	})
 	if err != nil {
 		return nil, actionStoreError("create Goal record", err)
-	}
-	if updatedAction.Status == store.ActionStatusDone {
-		if err := s.recalculateProjectAncestors(ctx, user.ID, updatedAction.ParentID); err != nil {
-			return nil, err
-		}
 	}
 	return convertGoalRecordFromStore(record, action.UID), nil
 }
@@ -977,90 +941,6 @@ func convertMemoReferenceFromStore(memo *store.Memo) *v1pb.MemoReference {
 	return &v1pb.MemoReference{Name: MemoNamePrefix + memo.UID, Title: title, Snippet: snippet, UpdateTime: timestamppb.New(time.Unix(memo.UpdatedTs, 0))}
 }
 
-func (s *APIV1Service) recalculateProjectAncestors(ctx context.Context, creatorID int32, parentID *int32) error {
-	if parentID == nil {
-		return nil
-	}
-	normal := store.Normal
-	actions, err := s.Store.ListActions(ctx, &store.FindAction{CreatorID: &creatorID, RowStatus: &normal})
-	if err != nil {
-		return actionStoreError("recalculate Project", err)
-	}
-	byID := map[int32]*store.Action{}
-	children := map[int32][]*store.Action{}
-	for _, action := range actions {
-		byID[action.ID] = action
-		if action.ParentID != nil {
-			children[*action.ParentID] = append(children[*action.ParentID], action)
-		}
-	}
-	visited := map[int32]bool{}
-	currentID := parentID
-	for currentID != nil && !visited[*currentID] {
-		visited[*currentID] = true
-		current := byID[*currentID]
-		if current == nil {
-			break
-		}
-		if current.Type == store.ActionTypeProject && current.Status != store.ActionStatusTerminated {
-			nextStatus := calculateProjectStatusFromChildren(current.ID, children)
-			if current.Status != nextStatus {
-				now := time.Now().Unix()
-				if _, err := s.Store.TransitionActionStatus(ctx, &store.TransitionActionStatus{
-					ActionID: current.ID, CreatorID: creatorID,
-					FromStatus: current.Status, ToStatus: nextStatus,
-					EffectiveDate: time.Unix(now, 0).Format("2006-01-02"), CreatedTs: now,
-				}); err != nil {
-					return actionStoreError("recalculate Project", err)
-				}
-				current.Status = nextStatus
-			}
-		}
-		currentID = current.ParentID
-	}
-	return nil
-}
-
-func (s *APIV1Service) calculateProjectStatus(ctx context.Context, creatorID int32, actionID int32) (store.ActionStatus, error) {
-	normal := store.Normal
-	actions, err := s.Store.ListActions(ctx, &store.FindAction{CreatorID: &creatorID, RowStatus: &normal})
-	if err != nil {
-		return "", actionStoreError("calculate Project status", err)
-	}
-	children := map[int32][]*store.Action{}
-	for _, action := range actions {
-		if action.ParentID != nil {
-			children[*action.ParentID] = append(children[*action.ParentID], action)
-		}
-	}
-	return calculateProjectStatusFromChildren(actionID, children), nil
-}
-
-func calculateProjectStatusFromChildren(actionID int32, children map[int32][]*store.Action) store.ActionStatus {
-	descendants := collectActiveActionDescendants(actionID, children)
-	if len(descendants) == 0 {
-		return store.ActionStatusInProgress
-	}
-	for _, descendant := range descendants {
-		if descendant.Status != store.ActionStatusDone {
-			return store.ActionStatusInProgress
-		}
-	}
-	return store.ActionStatusDone
-}
-
-func collectActiveActionDescendants(parentID int32, children map[int32][]*store.Action) []*store.Action {
-	result := []*store.Action{}
-	for _, child := range children[parentID] {
-		if child.Status == store.ActionStatusTerminated {
-			continue
-		}
-		result = append(result, child)
-		result = append(result, collectActiveActionDescendants(child.ID, children)...)
-	}
-	return result
-}
-
 func (s *APIV1Service) ensureMoveDoesNotCreateCycle(ctx context.Context, creatorID int32, actionID int32, parent *store.Action) error {
 	normal := store.Normal
 	actions, err := s.Store.ListActions(ctx, &store.FindAction{CreatorID: &creatorID, RowStatus: &normal})
@@ -1141,9 +1021,9 @@ func isActionActiveOnDate(histories []*store.ActionStatusHistory, date string) b
 		if history.EffectiveDate > date {
 			break
 		}
-		if history.ToStatus == store.ActionStatusTerminated {
+		if history.ToStatus == store.ActionStatusDone || history.ToStatus == store.ActionStatusTerminated {
 			active = false
-		} else if history.FromStatus == store.ActionStatusTerminated {
+		} else if history.FromStatus == store.ActionStatusDone || history.FromStatus == store.ActionStatusTerminated {
 			active = true
 		}
 	}

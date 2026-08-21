@@ -45,9 +45,14 @@ export const filterActionsByView = (actions: ActionItem[], view: ActionView): Ac
   const today = dayjs().format("YYYY-MM-DD");
   switch (view) {
     case "today":
-      return actions.filter(
-        (action) => action.type === "TASK" && action.planDate === today && ["TODO", "IN_PROGRESS"].includes(action.status),
-      );
+      return actions.filter((action) => {
+        if (action.type !== "TASK") return false;
+        if (["TODO", "IN_PROGRESS"].includes(action.status)) return action.planDate === today;
+        if (action.status === "DONE") {
+          return action.planDate === today || Boolean(action.completedAt && dayjs(action.completedAt).isSame(today, "day"));
+        }
+        return action.planDate === today || Boolean(action.terminatedAt && dayjs(action.terminatedAt).isSame(today, "day"));
+      });
     case "upcoming":
       return actions.filter(
         (action) => Boolean(action.planDate && action.planDate > today) && ["TODO", "IN_PROGRESS"].includes(action.status),
@@ -66,7 +71,10 @@ export const filterActionsByView = (actions: ActionItem[], view: ActionView): Ac
 };
 
 export const getActionViewCounts = (actions: ActionItem[]) => ({
-  today: filterActionsByView(actions, "today").length,
+  today: actions.filter(
+    (action) =>
+      action.type === "TASK" && action.planDate === dayjs().format("YYYY-MM-DD") && ["TODO", "IN_PROGRESS"].includes(action.status),
+  ).length,
   upcoming: filterActionsByView(actions, "upcoming").length,
   all: filterActionsByView(actions, "all").length,
   completed: filterActionsByView(actions, "completed").length,
@@ -241,10 +249,10 @@ export const useActionStore = create<ActionState>((set, get) => {
       const action = findAction(get().actions, uid);
       if (!action) return { ok: false, message: "Action 不存在" };
       try {
-        if (action.status === "DONE") await actionApi.reopenAction(uid);
+        if (["DONE", "TERMINATED"].includes(action.status)) await actionApi.reopenAction(uid);
         else await actionApi.completeAction(uid);
         await reloadActions();
-        return { ok: true, message: action.status === "DONE" ? "Action 已重新打开" : "Action 已完成" };
+        return { ok: true, message: ["DONE", "TERMINATED"].includes(action.status) ? "Action 已重新打开" : "Action 已完成" };
       } catch (error) {
         return { ok: false, message: getErrorMessage(error) };
       }
@@ -299,7 +307,7 @@ export const useActionStore = create<ActionState>((set, get) => {
       try {
         await actionApi.terminateAction(uid, reason);
         await reloadActions();
-        return { ok: true, message: "Action 已终止" };
+        return { ok: true, message: "Action 已放弃" };
       } catch (error) {
         return { ok: false, message: getErrorMessage(error) };
       }

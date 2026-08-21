@@ -22,8 +22,8 @@ export const isActionActiveOnDate = (action: ActionItem, date: string): boolean 
   let active = true;
   for (const history of action.statusHistory) {
     if (history.effectiveDate > date) break;
-    if (history.toStatus === "TERMINATED") active = false;
-    else if (history.fromStatus === "TERMINATED") active = true;
+    if (["DONE", "TERMINATED"].includes(history.toStatus)) active = false;
+    else if (["DONE", "TERMINATED"].includes(history.fromStatus)) active = true;
   }
   return active;
 };

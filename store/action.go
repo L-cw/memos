@@ -219,6 +219,7 @@ type ActionDriver interface {
 	BatchUpdateActionHabitRecords(ctx context.Context, records []*ActionHabitRecord) ([]*ActionHabitRecord, error)
 	ListActionHabitRecords(ctx context.Context, find *FindActionHabitRecord) ([]*ActionHabitRecord, error)
 	TransitionActionStatus(ctx context.Context, transition *TransitionActionStatus) (*ActionStatusHistory, error)
+	CompleteActionTree(ctx context.Context, creatorID int32, actionID int32, effectiveDate string, createdTs int64) error
 	ListActionStatusHistories(ctx context.Context, find *FindActionStatusHistory) ([]*ActionStatusHistory, error)
 	SetMemoActionRelations(ctx context.Context, set *SetMemoActionRelations) error
 	ListMemoActionRelations(ctx context.Context, find *FindMemoActionRelation) ([]*MemoActionRelation, error)
@@ -332,6 +333,14 @@ func (s *Store) TransitionActionStatus(ctx context.Context, transition *Transiti
 		return nil, err
 	}
 	return driver.TransitionActionStatus(ctx, transition)
+}
+
+func (s *Store) CompleteActionTree(ctx context.Context, creatorID int32, actionID int32, effectiveDate string, createdTs int64) error {
+	driver, err := s.actionDriver()
+	if err != nil {
+		return err
+	}
+	return driver.CompleteActionTree(ctx, creatorID, actionID, effectiveDate, createdTs)
 }
 
 func (s *Store) ListActionStatusHistories(ctx context.Context, find *FindActionStatusHistory) ([]*ActionStatusHistory, error) {

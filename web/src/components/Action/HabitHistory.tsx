@@ -1,13 +1,16 @@
 import { Tooltip } from "@mui/joy";
 import dayjs from "dayjs";
-import { CalendarClockIcon, CheckIcon, CoffeeIcon, XIcon } from "lucide-react";
+import { CalendarClockIcon, CalendarPlusIcon, CheckIcon, CoffeeIcon, XIcon } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { actionApi } from "@/api/action";
 import { useActionStore } from "@/store/v1";
 import { ActionHabitRecord, ActionItem, HabitRecordStatus } from "@/types/action";
 import { cn } from "@/utils";
-import { countHabitOccurrences, habitScheduleLabel, isHabitDue } from "@/utils/habit";
+import { isHabitDue } from "@/utils/habit";
+import ExpandableRecordText from "./ExpandableRecordText";
+import HabitBatchBackfillDialog from "./HabitBatchBackfillDialog";
+import HabitYearHeatmap from "./HabitYearHeatmap";
 
 const inputClass =
   "h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-800 outline-none transition-colors placeholder:text-zinc-400 focus:border-primary focus:ring-2 focus:ring-primary/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-600";
@@ -23,6 +26,7 @@ const HabitHistory = ({ action }: Props) => {
   const [recordStatus, setRecordStatus] = useState<HabitRecordStatus>("CHECKED_IN");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [batchBackfillOpen, setBatchBackfillOpen] = useState(false);
   const refreshActions = useActionStore((state) => state.refreshActions);
   const refreshTodayHabitRecords = useActionStore((state) => state.refreshTodayHabitRecords);
 
@@ -41,14 +45,21 @@ const HabitHistory = ({ action }: Props) => {
     setRecordDate(dayjs().format("YYYY-MM-DD"));
     setRecordStatus("CHECKED_IN");
     setNote("");
+    setBatchBackfillOpen(false);
     void loadRecords();
   }, [action.uid, loadRecords]);
 
   const today = dayjs().format("YYYY-MM-DD");
-  const elapsedRecords = records.filter((record) => record.occurrenceDate <= today);
-  const checkedCount = elapsedRecords.filter((record) => record.status === "CHECKED_IN").length;
-  const leaveCount = elapsedRecords.filter((record) => record.status === "LEAVE").length;
-  const uncheckedCount = Math.max(0, countHabitOccurrences(action, today) - checkedCount - leaveCount);
+  const refreshHabitData = async (date = recordDate) => {
+    await Promise.all([loadRecords(), refreshActions(), date === today ? refreshTodayHabitRecords() : Promise.resolve()]);
+  };
+
+  const selectRecordDate = (date: string) => {
+    const existing = records.find((record) => record.occurrenceDate === date);
+    setRecordDate(date);
+    setRecordStatus(existing?.status || "CHECKED_IN");
+    setNote(existing?.note || "");
+  };
 
   const handleAddRecord = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,7 +78,7 @@ const HabitHistory = ({ action }: Props) => {
           note: note.trim(),
         },
       ]);
-      await Promise.all([loadRecords(), refreshActions(), recordDate === today ? refreshTodayHabitRecords() : Promise.resolve()]);
+      await refreshHabitData();
       setNote("");
       toast.success("打卡记录已保存");
     } catch (error) {
@@ -79,92 +90,92 @@ const HabitHistory = ({ action }: Props) => {
 
   return (
     <section className="border-t border-zinc-200 px-4 py-4 sm:px-6 dark:border-zinc-800">
-      <div className="mb-4 grid grid-cols-4 divide-x divide-zinc-200 rounded-md bg-zinc-50 py-2 text-center dark:divide-zinc-700 dark:bg-zinc-800/60">
-        {[
-          { label: "周期", value: habitScheduleLabel(action), className: "text-zinc-700 dark:text-zinc-300" },
-          { label: "已打卡", value: checkedCount, className: "text-green-600 dark:text-green-400" },
-          { label: "请假", value: leaveCount, className: "text-amber-600 dark:text-amber-400" },
-          { label: "未打卡", value: uncheckedCount, className: "text-zinc-600 dark:text-zinc-300" },
-        ].map((item) => (
-          <div className="min-w-0 px-1" key={item.label}>
-            <div className="text-[11px] leading-4 text-zinc-500">{item.label}</div>
-            <div className={cn("truncate text-xs font-semibold leading-5 tabular-nums", item.className)} title={String(item.value)}>
-              {item.value}
-            </div>
-          </div>
-        ))}
+      <div className="mb-5 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+        <HabitYearHeatmap action={action} records={records} selectedDate={recordDate} onSelectDate={selectRecordDate} />
       </div>
 
-      {action.status !== "TERMINATED" && (
-        <form className="mb-5 grid gap-2 sm:grid-cols-[132px_150px_minmax(0,1fr)_auto]" onSubmit={handleAddRecord}>
-          <input
-            className={inputClass}
-            type="date"
-            value={recordDate}
-            min={action.habit?.startDate}
-            max={today}
-            aria-label="打卡日期"
-            required
-            onChange={(event) => setRecordDate(event.target.value)}
-          />
-          <div className="grid h-9 grid-cols-2 gap-1 rounded-md bg-zinc-100 p-1 dark:bg-zinc-800">
-            {[
-              { value: "CHECKED_IN" as const, label: "打卡", icon: CheckIcon },
-              { value: "LEAVE" as const, label: "请假", icon: CoffeeIcon },
-            ].map((option) => {
-              const Icon = option.icon;
-              const selected = recordStatus === option.value;
-              return (
-                <button
-                  className={cn(
-                    "flex min-w-0 items-center justify-center gap-1 rounded text-xs font-medium transition-colors",
-                    selected
-                      ? option.value === "CHECKED_IN"
-                        ? "bg-white text-green-700 shadow-sm dark:bg-zinc-700 dark:text-green-400"
-                        : "bg-white text-amber-700 shadow-sm dark:bg-zinc-700 dark:text-amber-400"
-                      : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200",
-                  )}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setRecordStatus(option.value)}
-                  key={option.value}
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="relative">
+      {["TODO", "IN_PROGRESS"].includes(action.status) && (
+        <div className="mb-5 overflow-x-auto pb-1">
+          <form className="grid min-w-[520px] grid-cols-[132px_150px_minmax(0,1fr)_36px_auto] gap-2" onSubmit={handleAddRecord}>
             <input
-              className={cn(inputClass, "pr-9")}
-              value={note}
-              maxLength={500}
-              placeholder="备注（可选）"
-              aria-label="打卡备注"
-              onChange={(event) => setNote(event.target.value)}
+              className={inputClass}
+              type="date"
+              value={recordDate}
+              min={action.habit?.startDate}
+              max={today}
+              aria-label="打卡日期"
+              required
+              onChange={(event) => selectRecordDate(event.target.value)}
             />
-            {note && (
-              <Tooltip title="清空" placement="top">
-                <button
-                  className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                  type="button"
-                  aria-label="清空打卡备注"
-                  onClick={() => setNote("")}
-                >
-                  <XIcon className="h-3.5 w-3.5" />
-                </button>
-              </Tooltip>
-            )}
-          </div>
-          <button
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
-            type="submit"
-            disabled={submitting}
-          >
-            {submitting ? "提交中" : "提交"}
-          </button>
-        </form>
+            <div className="grid h-9 grid-cols-2 gap-1 rounded-md bg-zinc-100 p-1 dark:bg-zinc-800">
+              {[
+                { value: "CHECKED_IN" as const, label: "打卡", icon: CheckIcon },
+                { value: "LEAVE" as const, label: "请假", icon: CoffeeIcon },
+              ].map((option) => {
+                const Icon = option.icon;
+                const selected = recordStatus === option.value;
+                return (
+                  <button
+                    className={cn(
+                      "flex min-w-0 items-center justify-center gap-1 rounded text-xs font-medium transition-colors",
+                      selected
+                        ? option.value === "CHECKED_IN"
+                          ? "bg-white text-green-700 shadow-sm dark:bg-zinc-700 dark:text-green-400"
+                          : "bg-white text-amber-700 shadow-sm dark:bg-zinc-700 dark:text-amber-400"
+                        : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200",
+                    )}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setRecordStatus(option.value)}
+                    key={option.value}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative">
+              <input
+                className={cn(inputClass, "pr-9")}
+                value={note}
+                maxLength={500}
+                placeholder="备注（可选）"
+                aria-label="打卡备注"
+                onChange={(event) => setNote(event.target.value)}
+              />
+              {note && (
+                <Tooltip title="清空" placement="top">
+                  <button
+                    className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    type="button"
+                    aria-label="清空打卡备注"
+                    onClick={() => setNote("")}
+                  >
+                    <XIcon className="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+              )}
+            </div>
+            <Tooltip title="批量补签" placement="top">
+              <button
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 text-zinc-500 hover:border-primary hover:text-primary dark:border-zinc-700 dark:text-zinc-300"
+                type="button"
+                aria-label="批量补签"
+                onClick={() => setBatchBackfillOpen(true)}
+              >
+                <CalendarPlusIcon className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <button
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
+              type="submit"
+              disabled={submitting}
+            >
+              {submitting ? "提交中" : "提交"}
+            </button>
+          </form>
+        </div>
       )}
 
       <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
@@ -179,10 +190,11 @@ const HabitHistory = ({ action }: Props) => {
         <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
           {records.map((record) => {
             const checked = record.status === "CHECKED_IN";
+            const backfilled = Boolean(record.createdAt && record.createdAt.slice(0, 10) > record.occurrenceDate);
             const Icon = checked ? CheckIcon : CoffeeIcon;
             return (
               <div
-                className="grid min-h-9 grid-cols-[24px_80px_minmax(0,1fr)] items-center gap-2 py-1.5"
+                className="grid min-h-9 grid-cols-[24px_112px_minmax(0,1fr)] items-center gap-2 py-1.5"
                 key={`${record.actionUid}-${record.occurrenceDate}`}
               >
                 <Tooltip title={checked ? "已打卡" : "请假"} placement="top">
@@ -197,15 +209,31 @@ const HabitHistory = ({ action }: Props) => {
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                 </Tooltip>
-                <time className="text-xs tabular-nums text-zinc-400">{record.occurrenceDate}</time>
-                <span className="min-w-0 truncate text-sm text-zinc-500" title={record.note || undefined}>
-                  {record.note || "-"}
-                </span>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <time className="text-xs tabular-nums text-zinc-400">{record.occurrenceDate}</time>
+                  {backfilled && (
+                    <span
+                      className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded bg-zinc-100 px-1 text-[10px] font-medium leading-none text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                      title="补签记录"
+                    >
+                      补
+                    </span>
+                  )}
+                </div>
+                <ExpandableRecordText text={record.note || "-"} />
               </div>
             );
           })}
         </div>
       )}
+
+      <HabitBatchBackfillDialog
+        action={action}
+        records={records}
+        open={batchBackfillOpen}
+        onClose={() => setBatchBackfillOpen(false)}
+        onSaved={() => refreshHabitData(today)}
+      />
     </section>
   );
 };

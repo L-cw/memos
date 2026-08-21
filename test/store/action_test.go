@@ -247,6 +247,68 @@ func TestActionStatusHistory(t *testing.T) {
 	require.Equal(t, store.ActionStatusDone, histories[2].ToStatus)
 }
 
+func TestCompleteActionTree(t *testing.T) {
+	ctx := context.Background()
+	ts := NewTestingStore(ctx, t)
+	t.Cleanup(func() { require.NoError(t, ts.Close()) })
+	if ts.Profile.Driver != "sqlite" {
+		t.Skip("Action MVP persistence is SQLite-only")
+	}
+	user, err := createTestingHostUser(ctx, ts)
+	require.NoError(t, err)
+
+	project := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-project", CreatorID: user.ID, Type: store.ActionTypeProject, Title: "Project",
+	})
+	activeChild := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-active", CreatorID: user.ID, ParentID: &project.ID, Type: store.ActionTypeTask, Title: "Active child",
+	})
+	doneChild := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-done", CreatorID: user.ID, ParentID: &project.ID, Type: store.ActionTypeTask, Title: "Done child",
+	})
+	activeGrandchild := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-grandchild", CreatorID: user.ID, ParentID: &doneChild.ID, Type: store.ActionTypeTask, Title: "Active grandchild",
+	})
+	abandonedChild := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-abandoned", CreatorID: user.ID, ParentID: &project.ID, Type: store.ActionTypeTask, Title: "Abandoned child",
+	})
+	abandonedGrandchild := createTestingAction(t, ctx, ts, &store.Action{
+		UID: "tree-abandoned-child", CreatorID: user.ID, ParentID: &abandonedChild.ID, Type: store.ActionTypeTask, Title: "Abandoned grandchild",
+	})
+	now := time.Now().Unix()
+	_, err = ts.TransitionActionStatus(ctx, &store.TransitionActionStatus{
+		ActionID: doneChild.ID, CreatorID: user.ID,
+		FromStatus: store.ActionStatusTodo, ToStatus: store.ActionStatusDone,
+		EffectiveDate: "2026-08-19", CreatedTs: now - 20,
+	})
+	require.NoError(t, err)
+	_, err = ts.TransitionActionStatus(ctx, &store.TransitionActionStatus{
+		ActionID: abandonedChild.ID, CreatorID: user.ID,
+		FromStatus: store.ActionStatusTodo, ToStatus: store.ActionStatusTerminated,
+		Reason: "No longer needed", EffectiveDate: "2026-08-19", CreatedTs: now - 10,
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, ts.CompleteActionTree(ctx, user.ID, project.ID, "2026-08-20", now))
+
+	for _, item := range []*store.Action{project, activeChild, doneChild, activeGrandchild, abandonedChild, abandonedGrandchild} {
+		updated, err := ts.GetAction(ctx, &store.FindAction{ID: &item.ID, CreatorID: &user.ID})
+		require.NoError(t, err)
+		switch item.ID {
+		case abandonedChild.ID:
+			require.Equal(t, store.ActionStatusTerminated, updated.Status)
+		case abandonedGrandchild.ID:
+			require.Equal(t, store.ActionStatusTodo, updated.Status)
+		default:
+			require.Equal(t, store.ActionStatusDone, updated.Status)
+		}
+	}
+
+	histories, err := ts.ListActionStatusHistories(ctx, &store.FindActionStatusHistory{CreatorID: &user.ID})
+	require.NoError(t, err)
+	require.Len(t, histories, 5)
+}
+
 func TestMemoActionRelationReplacement(t *testing.T) {
 	ctx := context.Background()
 	ts := NewTestingStore(ctx, t)

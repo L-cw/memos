@@ -1,6 +1,7 @@
 import { Tooltip } from "@mui/joy";
 import dayjs from "dayjs";
 import {
+  BanIcon,
   CalendarDaysIcon,
   CheckIcon,
   CircleCheckBigIcon,
@@ -15,7 +16,6 @@ import {
   PlusIcon,
   TargetIcon,
   Trash2Icon,
-  TriangleAlertIcon,
   UnlinkIcon,
   XIcon,
 } from "lucide-react";
@@ -24,8 +24,10 @@ import { toast } from "react-hot-toast";
 import { findAction, flattenActions, projectProgress, sortActionChildren, useActionStore } from "@/store/v1";
 import { ActionItem, UpdateActionInput } from "@/types/action";
 import { cn } from "@/utils";
+import { habitScheduleLabel } from "@/utils/habit";
 import ActionMemoPreviewDialog from "./ActionMemoPreviewDialog";
 import ActionTypeBadge from "./ActionTypeBadge";
+import ExpandableRecordText from "./ExpandableRecordText";
 import HabitHistory from "./HabitHistory";
 
 const inputClass =
@@ -41,26 +43,26 @@ const statusMeta = {
   TODO: { label: "待开始", className: "text-zinc-500", icon: CircleIcon },
   IN_PROGRESS: { label: "进行中", className: "text-blue-600 dark:text-blue-400", icon: Clock3Icon },
   DONE: { label: "已完成", className: "text-green-600 dark:text-green-400", icon: CircleCheckBigIcon },
-  TERMINATED: { label: "已终止", className: "text-red-600 dark:text-red-400", icon: TriangleAlertIcon },
+  TERMINATED: { label: "已放弃", className: "text-zinc-500 dark:text-zinc-400", icon: BanIcon },
 };
 
-const ActionStatus = ({ action, onTerminate, onReopen }: { action: ActionItem; onTerminate: () => void; onReopen: () => void }) => {
+const ActionStatus = ({ action, onToggle }: { action: ActionItem; onToggle: () => void }) => {
   const meta = statusMeta[action.status];
   const Icon = meta.icon;
-  const terminated = action.status === "TERMINATED";
+  const terminal = ["DONE", "TERMINATED"].includes(action.status);
   return (
     <button
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded px-1.5 py-1 text-sm font-medium transition-colors",
         meta.className,
-        terminated
-          ? "hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/30 dark:hover:text-green-400"
-          : "hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400",
+        terminal
+          ? "hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
+          : "hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950/30 dark:hover:text-green-400",
       )}
       type="button"
-      aria-label={terminated ? `恢复 ${action.title}` : `终止 ${action.title}`}
-      title={terminated ? "点击恢复" : "点击终止"}
-      onClick={terminated ? onReopen : onTerminate}
+      aria-label={terminal ? `重新打开 ${action.title}` : `完成 ${action.title}`}
+      title={terminal ? "点击重新打开" : "点击完成"}
+      onClick={onToggle}
     >
       <Icon className="h-4 w-4" />
       {meta.label}
@@ -178,15 +180,22 @@ const TreeItem = ({ item, depth }: { item: ActionItem; depth: number }) => {
             className={cn(
               "flex h-7 w-7 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-primary dark:hover:bg-zinc-800",
               item.status === "DONE" && "text-green-600 dark:text-green-400",
+              item.status === "TERMINATED" && "text-zinc-400 dark:text-zinc-500",
             )}
             type="button"
-            aria-label={item.status === "DONE" ? `重新打开 ${item.title}` : `完成 ${item.title}`}
+            aria-label={["DONE", "TERMINATED"].includes(item.status) ? `重新打开 ${item.title}` : `完成 ${item.title}`}
             onClick={async () => {
               const result = await toggleComplete(item.uid);
               result.ok ? toast.success(result.message) : toast.error(result.message);
             }}
           >
-            {item.status === "DONE" ? <CircleCheckBigIcon className="h-4 w-4" /> : <CircleIcon className="h-4 w-4" />}
+            {item.status === "DONE" ? (
+              <CircleCheckBigIcon className="h-4 w-4" />
+            ) : item.status === "TERMINATED" ? (
+              <BanIcon className="h-4 w-4" />
+            ) : (
+              <CircleIcon className="h-4 w-4" />
+            )}
           </button>
           <span
             className={cn(
@@ -223,9 +232,9 @@ const ActionDetailDrawer = () => {
   const deleteAction = useActionStore((state) => state.deleteAction);
   const moveAction = useActionStore((state) => state.moveAction);
   const togglePin = useActionStore((state) => state.togglePin);
+  const toggleComplete = useActionStore((state) => state.toggleComplete);
   const addGoalRecord = useActionStore((state) => state.addGoalRecord);
   const terminateAction = useActionStore((state) => state.terminateAction);
-  const reopenAction = useActionStore((state) => state.reopenAction);
   const addChild = useActionStore((state) => state.addChild);
   const openMemoPicker = useActionStore((state) => state.openMemoPicker);
   const setMemoRelations = useActionStore((state) => state.setMemoRelations);
@@ -238,6 +247,7 @@ const ActionDetailDrawer = () => {
   const [childTitle, setChildTitle] = useState("");
   const [previewMemoName, setPreviewMemoName] = useState<string>();
   const [goalDirection, setGoalDirection] = useState<"+" | "-" | "=">("+");
+  const [goalNote, setGoalNote] = useState("");
 
   useEffect(() => {
     if (!action) return;
@@ -253,6 +263,7 @@ const ActionDetailDrawer = () => {
     setChildTitle("");
     setPreviewMemoName(undefined);
     setGoalDirection("+");
+    setGoalNote("");
   }, [action?.uid]);
 
   const relatedMemos = useMemo(
@@ -287,6 +298,11 @@ const ActionDetailDrawer = () => {
     result.ok ? toast.success(result.message) : toast.error(result.message);
   };
 
+  const handleStatusToggle = async () => {
+    const result = await toggleComplete(action.uid);
+    result.ok ? toast.success(result.message) : toast.error(result.message);
+  };
+
   const handleMove = async () => {
     setMoving(true);
     const result = await moveAction(action.uid, parentUid || undefined);
@@ -296,7 +312,8 @@ const ActionDetailDrawer = () => {
 
   const handleGoalSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     const amount = Number(data.get("amount"));
     const overwrite = goalDirection === "=";
     if (!Number.isFinite(amount) || amount < 0 || (!overwrite && amount === 0)) {
@@ -307,13 +324,14 @@ const ActionDetailDrawer = () => {
       action.uid,
       overwrite ? "OVERWRITE" : "DELTA",
       overwrite ? amount : goalDirection === "-" ? -amount : amount,
-      String(data.get("note") || ""),
+      goalNote.trim(),
       dayjs(String(data.get("recordedAt"))).format("YYYY-MM-DD HH:mm"),
     );
     result.ok ? toast.success(result.message) : toast.error(result.message);
     if (result.ok) {
-      event.currentTarget.reset();
+      form.reset();
       setGoalDirection("+");
+      setGoalNote("");
     }
   };
 
@@ -347,15 +365,8 @@ const ActionDetailDrawer = () => {
         <header className="flex min-h-16 items-center justify-between gap-3 border-b border-zinc-200 px-4 sm:px-6 dark:border-zinc-800">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <ActionTypeBadge type={action.type} />
-            <ActionStatus
-              action={action}
-              onTerminate={() => setTerminateDialogOpen(true)}
-              onReopen={async () => {
-                const result = await reopenAction(action.uid);
-                result.ok ? toast.success(result.message) : toast.error(result.message);
-              }}
-            />
-            {action.type === "PROJECT" && action.status !== "TERMINATED" && <span className="text-xs text-zinc-500">状态由子项计算</span>}
+            <ActionStatus action={action} onToggle={handleStatusToggle} />
+            {action.type === "HABIT" && <span className="text-xs text-zinc-500">{habitScheduleLabel(action)}</span>}
             {action.type === "GOAL" && ["TODO", "IN_PROGRESS"].includes(action.status) && (
               <span className="text-xs text-zinc-500">达到目标值后自动完成</span>
             )}
@@ -371,6 +382,18 @@ const ActionDetailDrawer = () => {
                 {action.pinned ? <PinOffIcon className="h-4 w-4" /> : <PinIcon className="h-4 w-4" />}
               </button>
             </Tooltip>
+            {["TODO", "IN_PROGRESS"].includes(action.status) && (
+              <Tooltip title="放弃" placement="bottom">
+                <button
+                  className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                  type="button"
+                  aria-label={`放弃 ${action.title}`}
+                  onClick={() => setTerminateDialogOpen(true)}
+                >
+                  <BanIcon className="h-4 w-4" />
+                </button>
+              </Tooltip>
+            )}
             <Tooltip title={confirmDelete ? "再次点击确认删除" : "删除"} placement="bottom">
               <button
                 className={cn(
@@ -482,10 +505,10 @@ const ActionDetailDrawer = () => {
 
           {action.status === "TERMINATED" && (
             <section className="border-t border-zinc-200 px-4 py-4 sm:px-6 dark:border-zinc-800">
-              <div className="border-l-2 border-red-400 bg-red-50 px-4 py-3 dark:bg-red-950/25">
-                <div className="text-xs font-semibold text-red-700 dark:text-red-300">终止原因</div>
-                <p className="mt-1 text-sm leading-6 text-red-700 dark:text-red-300">{action.terminationReason}</p>
-                <p className="mt-1 text-xs text-red-500">{action.terminatedAt}</p>
+              <div className="border-l-2 border-zinc-300 bg-zinc-50 px-4 py-3 dark:border-zinc-600 dark:bg-zinc-800/60">
+                <div className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">放弃原因</div>
+                <p className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{action.terminationReason}</p>
+                <p className="mt-1 text-xs text-zinc-400">{action.terminatedAt}</p>
               </div>
             </section>
           )}
@@ -553,7 +576,29 @@ const ActionDetailDrawer = () => {
                     />
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row">
-                    <input className={inputClass} name="note" placeholder="记录说明" aria-label="记录说明" />
+                    <div className="relative min-w-0 flex-1">
+                      <input
+                        className={cn(inputClass, "pr-9")}
+                        name="note"
+                        value={goalNote}
+                        maxLength={500}
+                        placeholder="记录说明"
+                        aria-label="记录说明"
+                        onChange={(event) => setGoalNote(event.target.value)}
+                      />
+                      {goalNote && (
+                        <Tooltip title="清空" placement="top">
+                          <button
+                            className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                            type="button"
+                            aria-label="清空记录说明"
+                            onClick={() => setGoalNote("")}
+                          >
+                            <XIcon className="h-3.5 w-3.5" />
+                          </button>
+                        </Tooltip>
+                      )}
+                    </div>
                     <button
                       className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
                       type="submit"
@@ -576,13 +621,13 @@ const ActionDetailDrawer = () => {
                       {record.delta > 0 ? "+" : ""}
                       {record.delta}
                     </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm text-zinc-700 dark:text-zinc-300">{record.note || "进度更新"}</span>
+                    <div className="min-w-0">
+                      <ExpandableRecordText text={record.note || "进度更新"} className="text-zinc-700 dark:text-zinc-300" />
                       <span className="block text-xs text-zinc-400">
                         {record.recordedAt}
                         {record.operation === "OVERWRITE" && " · 重置"}
                       </span>
-                    </span>
+                    </div>
                     <span className="text-xs text-zinc-500">累计 {record.valueAfter}</span>
                   </div>
                 ))}
@@ -603,14 +648,7 @@ const ActionDetailDrawer = () => {
                   </span>
                 )}
               </h3>
-              <div className="mb-3">
-                {action.children.length > 0 ? (
-                  <TreeItems items={action.children} />
-                ) : (
-                  <p className="py-3 text-sm text-zinc-400">暂无子项</p>
-                )}
-              </div>
-              <form className="grid gap-2 sm:grid-cols-[130px_minmax(0,1fr)_auto]" onSubmit={handleChildSubmit}>
+              <form className="mb-3 grid gap-2 sm:grid-cols-[130px_minmax(0,1fr)_auto]" onSubmit={handleChildSubmit}>
                 <input
                   className={inputClass}
                   name="planDate"
@@ -655,6 +693,13 @@ const ActionDetailDrawer = () => {
                   添加
                 </button>
               </form>
+              <div>
+                {action.children.length > 0 ? (
+                  <TreeItems items={action.children} />
+                ) : (
+                  <p className="py-3 text-sm text-zinc-400">暂无子项</p>
+                )}
+              </div>
             </section>
           )}
 
@@ -754,16 +799,16 @@ const ActionDetailDrawer = () => {
             }}
           >
             <div className="px-5 py-5">
-              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400">
-                <TriangleAlertIcon className="h-5 w-5" />
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <BanIcon className="h-5 w-5" />
               </div>
               <h2 id="terminate-action-title" className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                终止 Action
+                放弃 Action
               </h2>
-              <p className="mt-1 text-sm leading-6 text-zinc-500">终止后将停止继续记录，之后可以通过状态恢复，历史记录会保留。</p>
+              <p className="mt-1 text-sm leading-6 text-zinc-500">放弃后将停止继续记录，之后可以通过状态重新打开，历史记录会保留。</p>
               <label className="mt-4 block">
-                <span className="mb-1.5 block text-xs font-medium text-zinc-500">终止原因</span>
-                <textarea className={cn(inputClass, "min-h-24 resize-y")} name="reason" placeholder="说明终止的原因" autoFocus required />
+                <span className="mb-1.5 block text-xs font-medium text-zinc-500">放弃原因</span>
+                <textarea className={cn(inputClass, "min-h-24 resize-y")} name="reason" placeholder="说明放弃的原因" autoFocus required />
               </label>
             </div>
             <footer className="flex justify-end gap-2 border-t border-zinc-200 px-5 py-4 dark:border-zinc-800">
@@ -774,8 +819,11 @@ const ActionDetailDrawer = () => {
               >
                 取消
               </button>
-              <button className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700" type="submit">
-                确认终止
+              <button
+                className="rounded-md bg-zinc-700 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-600 dark:hover:bg-zinc-500"
+                type="submit"
+              >
+                确认放弃
               </button>
             </footer>
           </form>

@@ -14,7 +14,7 @@ const actionStatusLabel = {
   TODO: "待开始",
   IN_PROGRESS: "进行中",
   DONE: "已完成",
-  TERMINATED: "已终止",
+  TERMINATED: "已放弃",
 };
 
 const ReferencedAction = ({ resourceId: uid, params: paramsStr }: Props) => {

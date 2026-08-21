@@ -67,6 +67,24 @@ func TestValidateActionTermination(t *testing.T) {
 	require.Error(t, validateActionTermination(&store.Action{Type: store.ActionTypeHabit, Status: store.ActionStatusTerminated}))
 }
 
+func TestValidateActionCompletion(t *testing.T) {
+	for _, actionType := range []store.ActionType{
+		store.ActionTypeTask,
+		store.ActionTypeProject,
+		store.ActionTypeGoal,
+		store.ActionTypeHabit,
+	} {
+		for _, actionStatus := range []store.ActionStatus{
+			store.ActionStatusTodo,
+			store.ActionStatusInProgress,
+			store.ActionStatusDone,
+		} {
+			require.NoError(t, validateActionCompletion(&store.Action{Type: actionType, Status: actionStatus}))
+		}
+	}
+	require.Error(t, validateActionCompletion(&store.Action{Type: store.ActionTypeHabit, Status: store.ActionStatusTerminated}))
+}
+
 func TestConvertGoalRecordOperationToStore(t *testing.T) {
 	operation, err := convertGoalRecordOperationToStore(v1pb.GoalRecordOperation_GOAL_RECORD_OPERATION_UNSPECIFIED)
 	require.NoError(t, err)
@@ -81,24 +99,13 @@ func TestIsActionActiveOnDate(t *testing.T) {
 	histories := []*store.ActionStatusHistory{
 		{FromStatus: store.ActionStatusInProgress, ToStatus: store.ActionStatusTerminated, EffectiveDate: "2026-08-05"},
 		{FromStatus: store.ActionStatusTerminated, ToStatus: store.ActionStatusInProgress, EffectiveDate: "2026-08-08"},
+		{FromStatus: store.ActionStatusInProgress, ToStatus: store.ActionStatusDone, EffectiveDate: "2026-08-10"},
+		{FromStatus: store.ActionStatusDone, ToStatus: store.ActionStatusInProgress, EffectiveDate: "2026-08-12"},
 	}
 	require.True(t, isActionActiveOnDate(histories, "2026-08-04"))
 	require.False(t, isActionActiveOnDate(histories, "2026-08-05"))
 	require.False(t, isActionActiveOnDate(histories, "2026-08-07"))
 	require.True(t, isActionActiveOnDate(histories, "2026-08-08"))
-}
-
-func TestCalculateProjectStatusIgnoresTerminatedSubtree(t *testing.T) {
-	children := map[int32][]*store.Action{
-		1: {
-			{ID: 2, Status: store.ActionStatusDone},
-			{ID: 3, Status: store.ActionStatusTerminated},
-		},
-		3: {
-			{ID: 4, Status: store.ActionStatusInProgress},
-		},
-	}
-	require.Equal(t, store.ActionStatusDone, calculateProjectStatusFromChildren(1, children))
-	children[1] = append(children[1], &store.Action{ID: 5, Status: store.ActionStatusInProgress})
-	require.Equal(t, store.ActionStatusInProgress, calculateProjectStatusFromChildren(1, children))
+	require.False(t, isActionActiveOnDate(histories, "2026-08-10"))
+	require.True(t, isActionActiveOnDate(histories, "2026-08-12"))
 }
