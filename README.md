@@ -59,3 +59,19 @@ pnpm build
 ```bash
 go test ./...
 ```
+
+## Docker 构建
+
+Dockerfile 已将前端依赖、Buf 插件、Go 模块和 Go 编译缓存拆分为独立缓存层。外部构建平台需要使用 BuildKit，并将缓存推送到镜像仓库；否则每台新构建机仍会重新下载依赖。
+
+```bash
+docker buildx build \
+  --platform linux/amd64 \
+  --tag registry.example.com/memos:latest \
+  --cache-from type=registry,ref=registry.example.com/memos:buildcache \
+  --cache-to type=registry,ref=registry.example.com/memos:buildcache,mode=max \
+  --progress=auto \
+  --push .
+```
+
+不要使用 `--progress=plain`，它会输出依赖安装的逐步日志。正常构建只保留阶段摘要和警告；失败时 Dockerfile 只输出对应阶段错误日志的最后 100 行。多架构构建时，`NODE_IMAGE`、`GO_IMAGE` 和 `ALPINE_IMAGE` 必须是多架构镜像；当前默认的阿里云基础镜像是单架构镜像，可通过 `--build-arg` 替换。

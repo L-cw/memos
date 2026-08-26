@@ -1,1 +1,8 @@
 web/node_modules
+.git
+.git/**
+.memos-dev
+build
+memos-backup-tool
+web/dist
+server/router/frontend/dist
