@@ -74,4 +74,4 @@ docker buildx build \
   --push .
 ```
 
-不要使用 `--progress=plain`，它会输出依赖安装的逐步日志。正常构建只保留阶段摘要和警告；失败时 Dockerfile 只输出对应阶段错误日志的最后 100 行。多架构构建时，`NODE_IMAGE`、`GO_IMAGE` 和 `ALPINE_IMAGE` 必须是多架构镜像；当前默认的阿里云基础镜像是单架构镜像，可通过 `--build-arg` 替换。
+不要使用 `--progress=plain`，它会额外输出 BuildKit 的逐步日志；Dockerfile 保留 pnpm、Buf、Vite 和 Go 的实时输出。多架构构建时，`NODE_IMAGE`、`GO_IMAGE` 和 `ALPINE_IMAGE` 必须是多架构镜像；当前默认的阿里云基础镜像是单架构镜像，可通过 `--build-arg` 替换。

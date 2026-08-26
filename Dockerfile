@@ -8,28 +8,14 @@ FROM ${NODE_IMAGE} AS frontend-deps
 WORKDIR /frontend-build
 ARG PNPM_VERSION
 
-RUN set -eu; \
-    npm install --global --no-fund --no-audit --no-update-notifier --loglevel=error pnpm@${PNPM_VERSION} \
-      >/tmp/pnpm-bootstrap.log 2>&1 || { \
-        printf '%s\n' 'pnpm bootstrap failed (last 100 lines):' >&2; \
-        tail -n 100 /tmp/pnpm-bootstrap.log >&2; \
-        exit 1; \
-      }; \
-    printf '%s\n' 'pnpm bootstrap complete'
+RUN npm install --global --no-fund --no-audit --no-update-notifier --loglevel=error pnpm@${PNPM_VERSION}
 
 COPY web/package.json web/pnpm-lock.yaml ./web/
 WORKDIR /frontend-build/web
 
 RUN --mount=type=cache,id=memos-pnpm-store,target=/pnpm/store \
-    set -eu; \
-    pnpm install --frozen-lockfile --ignore-scripts --store-dir=/pnpm/store \
-      --reporter=append-only --loglevel=error \
-      >/tmp/pnpm-install.log 2>&1 || { \
-        printf '%s\n' 'frontend dependency install failed (last 100 lines):' >&2; \
-        tail -n 100 /tmp/pnpm-install.log >&2; \
-        exit 1; \
-      }; \
-    printf '%s\n' 'frontend dependencies ready'
+    pnpm install --frozen-lockfile --ignore-scripts --prefer-offline \
+      --store-dir=/pnpm/store --reporter=append-only --loglevel=info
 
 # Build frontend dist.
 FROM frontend-deps AS frontend
@@ -41,22 +27,9 @@ COPY web ./web
 WORKDIR /frontend-build/web
 
 RUN --mount=type=cache,id=memos-buf-cache,target=/root/.cache/buf \
-    set -eu; \
-    cd ../proto; \
-    ../web/node_modules/.bin/buf generate >/tmp/buf-generate.log 2>&1 || { \
-      printf '%s\n' 'Buf generation failed (last 100 lines):' >&2; \
-      tail -n 100 /tmp/buf-generate.log >&2; \
-      exit 1; \
-    }
+    cd ../proto && ../web/node_modules/.bin/buf generate
 ARG BUILD_LOG_LEVEL
-RUN set -eu; \
-    pnpm exec vite build --logLevel=${BUILD_LOG_LEVEL} >/tmp/frontend-build.log 2>&1 || { \
-      printf '%s\n' 'frontend build failed (last 100 lines):' >&2; \
-      tail -n 100 /tmp/frontend-build.log >&2; \
-      exit 1; \
-    }; \
-    grep -E '(^Browserslist:|^\(!\)|built in)' /tmp/frontend-build.log || \
-      printf '%s\n' 'frontend build complete'
+RUN pnpm exec vite build --logLevel=${BUILD_LOG_LEVEL}
 
 # Build backend exec file.
 FROM ${GO_IMAGE} AS backend
@@ -64,13 +37,7 @@ WORKDIR /backend-build
 
 COPY go.mod go.sum ./
 RUN --mount=type=cache,id=memos-go-mod,target=/go/pkg/mod \
-    set -eu; \
-    go mod download >/tmp/go-mod-download.log 2>&1 || { \
-      printf '%s\n' 'Go module download failed (last 100 lines):' >&2; \
-      tail -n 100 /tmp/go-mod-download.log >&2; \
-      exit 1; \
-    }; \
-    printf '%s\n' 'go modules ready'
+    go mod download
 
 COPY bin ./bin
 COPY internal ./internal
