@@ -3,6 +3,8 @@ ARG GO_IMAGE=registry.cn-hangzhou.aliyuncs.com/goodlcw1-prod/golang:1.23-alpine
 ARG ALPINE_IMAGE=registry.cn-hangzhou.aliyuncs.com/goodlcw1-prod/alpine:latest
 ARG PNPM_VERSION=9.15.4
 ARG BUILD_LOG_LEVEL=warn
+ARG GOPROXY=https://mirrors.aliyun.com/goproxy/,https://goproxy.cn,direct
+ARG GOSUMDB=sum.golang.google.cn
 
 FROM ${NODE_IMAGE} AS frontend-deps
 WORKDIR /frontend-build
@@ -34,6 +36,10 @@ RUN pnpm exec vite build --logLevel=${BUILD_LOG_LEVEL}
 # Build backend exec file.
 FROM ${GO_IMAGE} AS backend
 WORKDIR /backend-build
+ARG GOPROXY
+ARG GOSUMDB
+ENV GOPROXY=${GOPROXY}
+ENV GOSUMDB=${GOSUMDB}
 
 COPY go.mod go.sum ./
 RUN --mount=type=cache,id=memos-go-mod,target=/go/pkg/mod \

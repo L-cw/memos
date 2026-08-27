@@ -64,6 +64,8 @@ go test ./...
 
 Dockerfile 已将前端依赖、Buf 插件、Go 模块和 Go 编译缓存拆分为独立缓存层。外部构建平台需要使用 BuildKit，并将缓存推送到镜像仓库；否则每台新构建机仍会重新下载依赖。
 
+Go 模块默认通过阿里云代理下载，并使用 `goproxy.cn` 和直连作为后备。构建平台可通过 `--build-arg GOPROXY=...` 和 `--build-arg GOSUMDB=...` 覆盖默认配置。
+
 ```bash
 docker buildx build \
   --platform linux/amd64 \
